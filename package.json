@@ -1,0 +1,22 @@
+{
+  "name": "ncnc-scripts",
+  "version": "1.0.0",
+  "description": "scripts",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "commander": "^2.17.1",
+    "google-auth-library": "^1.6.1",
+    "googleapis": "^33.0.0",
+    "moment": "^2.22.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}
