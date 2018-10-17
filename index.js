@@ -19,6 +19,57 @@ program
   .command('giftistar')
   .action(async () => {
     try {
+      const content = await getData('credentials.json')
+      const credentials = JSON.parse(content)
+
+      const {
+        client_secret,
+        client_id,
+        redirect_uris
+      } = credentials.installed
+
+      const oAuth2Client = new google.auth.OAuth2(
+        client_id,
+        client_secret,
+        redirect_uris[0]
+      )
+
+      let tokenData
+      try {
+        tokenData = await getData(TOKEN_PATH)
+      } catch (err) {
+        const authUrl = oAuth2Client.generateAuthUrl({
+          access_type: 'offline',
+          scope: SCOPES
+        })
+        console.log('Authorizse this app by visiting this url:', authUrl)
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        })
+
+        const code = await askCode(rl)
+
+        const {tokens} = await oAuth2Client.getToken(code)
+
+        oAuth2Client.setCredentials(tokens)
+
+        await writeData(TOKEN_PATH, JSON.stringify(tokens))
+
+        console.log('Token stored to', TOKEN_PATH)
+
+        tokenData = await getData(TOKEN_PATH)
+      }
+
+      oAuth2Client.setCredentials(JSON.parse(tokenData))
+
+      console.log('onUpdate')
+      const sheets = google.sheets({
+        version: 'v4',
+        auth: oAuth2Client
+      })
+
+      let giftistarItems = []
       const response = await axios.post(
         'https://api.giftistar.com/parse/classes/Brand',
         {
@@ -49,7 +100,6 @@ program
       }
 
       for (const brand of brands) {
-        console.log(brand.name)
         const res = await axios.post(
           'https://api.giftistar.com/parse/classes/Menu',
           {
@@ -78,8 +128,11 @@ program
           }
         )
         const { results } = res.data
-        let giftistarItems = []
+        
         for (const result of results) {
+          if (result.coupon_count === 0) {
+            stockMoney = 0
+          } else stockMoney = result.stock_money
           giftistarItems.push([
             result.objectId,
             brand.name,
@@ -89,10 +142,91 @@ program
             result.buy_price,
             `${result.price - result.discount_step2}`,
             result.price,
-            result.cupon_count
+            result.coupon_count,
+            stockMoney
           ])
         }
         await sleep()
+      }
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'A3:I99999',
+        valueInputOption: 'RAW',
+        resource: {
+          values: giftistarItems
+        }
+      })
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'A1',
+        valueInputOption: 'RAW',
+        resource: {
+          values: [
+            [`기프티스타 (업데이트된 날짜 ${moment().format('YY년 MM월 DD일')})`]
+          ]
+        }
+      })
+      console.log('dated')
+
+    } catch (error) {
+      console.log(error)
+      process.exit()
+    }
+  })
+
+program
+  .version('0.1.0')
+  .command('ncnc')
+  .option('-t, --token [token]', '토큰을 입력합니다.')
+  .action(async options => {
+    let { token } = options
+
+    try {
+      let ncncConItems = []
+      const axiosOptions = {
+        headers: {
+          Authorization: `Bear ${token}`
+        }
+      }
+      const response = await axios.get(
+        'http://localhost:3010/cms/con-category1s',
+        axiosOptions
+      )
+      const { conCategory1s } = response.data
+
+      for (const conCategory1 of conCategory1s) {
+        const response = await axios.get(
+          `http://localhost:3010/cms/con-category2s?conCategory1Id=${
+            conCategory1.id
+          }`,
+          axiosOptions
+        )
+        const { conCategory2s } = response.data
+
+        for (const conCategory2 of conCategory2s) {
+          const response = await axios.get(
+            `http://localhost:3010/cms/con-items?conCategory2Id=${
+              conCategory2.id
+            }`,
+            axiosOptions
+          )
+          const { conItems } = response.data
+          
+          for (const conItem of conItems) {
+            ncncConItems.push([
+              conItem.id,
+              conCategory2.name,
+              conItem.name,
+              conItem.originalPrice,
+              conItem.askingPrice,
+              conItem.ncSellingPrice,
+              conItem.sfSellingPrice
+            ])
+          }
+          sleepShort()
+        }
       }
 
       const content = await getData('credentials.json')
@@ -147,85 +281,6 @@ program
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: 'A3:I99999',
-        valueInputOption: 'RAW',
-        resource: {
-          values: giftistarItems
-        }
-      })
-
-      await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: 'A1',
-        valueInputOption: 'RAW',
-        resource: {
-          values: [
-            [`기프티스타 (업데이트된 날짜 ${moment().format('YY년 MM월 DD일')})`]
-          ]
-        }
-      })
-      console.log('dated')
-
-    } catch (error) {
-      console.log(error)
-      process.exit()
-    }
-  })
-
-program
-  .version('0.1.0')
-  .command('ncnc')
-  .option('-t, --token [token]', '토큰을 입력합니다.')
-  .action(async options => {
-    let { token } = options
-
-    try {
-      const axiosOptions = {
-        headers: {
-          Authorization: `Bear ${token}`
-        }
-      }
-      const response = await axios.get(
-        'http://localhost:3010/cms/con-category1s',
-        axiosOptions
-      )
-      const { conCategory1s } = response.data
-
-      for (const conCategory1 of conCategory1s) {
-        const response = await axios.get(
-          `http://localhost:3010/cms/con-category2s?conCategory1Id=${
-            conCategory1.id
-          }`,
-          axiosOptions
-        )
-        const { conCategory2s } = response.data
-
-        for (const conCategory2 of conCategory2s) {
-          const response = await axios.get(
-            `http://localhost:3010/cms/con-items?conCategory2Id=${
-              conCategory2.id
-            }`,
-            axiosOptions
-          )
-          const { conItems } = response.data
-          let ncncConItems = []
-          for (const conItem of conItems) {
-            ncncConItems.push([
-              conItem.id,
-              conCategory2.name,
-              conItem.name,
-              conItem.originalPrice,
-              conItem.askingPrice,
-              conItem.ncSellingPrice,
-              conItem.sfSellingPrice
-            ])
-          }
-          sleepShort()
-        }
-      }
-
-      await sheets.spreadsheets.values.update({
-        spreadsheetId,
         range: 'sheet2!A3:G99999',
         valueInputOption: 'RAW',
         resource: {
@@ -260,6 +315,56 @@ program
     let { token } = options
 
     try {
+      const content = await getData('credentials.json')
+      const credentials = JSON.parse(content)
+
+      const {
+        client_secret,
+        client_id,
+        redirect_uris
+      } = credentials.installed
+
+      const oAuth2Client = new google.auth.OAuth2(
+        client_id,
+        client_secret,
+        redirect_uris[0]
+      )
+
+      let tokenData
+      try {
+        tokenData = await getData(TOKEN_PATH)
+      } catch (err) {
+        const authUrl = oAuth2Client.generateAuthUrl({
+          access_type: 'offline',
+          scope: SCOPES
+        })
+        console.log('Authorizse this app by visiting this url:', authUrl)
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        })
+
+        const code = await askCode(rl)
+
+        const {tokens} = await oAuth2Client.getToken(code)
+
+        oAuth2Client.setCredentials(tokens)
+
+        await writeData(TOKEN_PATH, JSON.stringify(tokens))
+
+        console.log('Token stored to', TOKEN_PATH)
+
+        tokenData = await getData(TOKEN_PATH)
+      }
+
+      oAuth2Client.setCredentials(JSON.parse(tokenData))
+
+      console.log('onUpdate')
+      const sheets = google.sheets({
+        version: 'v4',
+        auth: oAuth2Client
+      })
+
       const axiosOptions = {
         headers: {
           Authorization: `Bear ${token}`
@@ -300,15 +405,14 @@ program
         }
       })
       console.log('dated')
-
-
-      updateSheets()
     } catch (error) {
       console.log(error)
       process.exit()
     }
   })
 program.parse(process.argv)
+
+
 
 
 function sleep() {
