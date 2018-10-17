@@ -2,9 +2,7 @@ const moment = require('moment')
 const axios = require('axios')
 const fs = require('fs')
 const readline = require('readline')
-const {
-  google
-} = require('googleapis')
+const { google } = require('googleapis')
 const program = require('commander')
 const util = require('util')
 

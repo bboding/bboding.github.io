@@ -1,23 +1,18 @@
+const moment = require('moment')
 const axios = require('axios')
 const fs = require('fs')
 const readline = require('readline')
 const { google } = require('googleapis')
 const program = require('commander')
+const util = require('util')
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 const TOKEN_PATH = 'token.json'
 
-let giftistarItems = []
-let ncncConItems = []
+const getData = util.promisify(fs.readFile)
+const writeData = util.promisify(fs.writeFile)
 
-let request = {
-  spreadsheetId: '17vx2FXgG1Ylzt2SWjuRkIre_4O3dsb49q1SmT408fQo',
-  range: null,
-  valueInputOption: 'RAW',
-  resource: {
-    values: null
-  }
-}
+const spreadsheetId = '17vx2FXgG1Ylzt2SWjuRkIre_4O3dsb49q1SmT408fQo'
 
 program
   .version('0.1.0')
@@ -45,7 +40,6 @@ program
       )
 
       const { results } = response.data
-
       let brands = []
       for (const result of results) {
         brands.push({
@@ -83,29 +77,95 @@ program
             }
           }
         )
-
         const { results } = res.data
-
+        let giftistarItems = []
         for (const result of results) {
           giftistarItems.push([
-            brand.id,
-            brand.name,
             result.objectId,
+            brand.name,
             result.name,
             result.origin_price,
             `${result.buy_price - result.buy_step2}`,
             result.buy_price,
             `${result.price - result.discount_step2}`,
-            result.price
+            result.price,
+            result.cupon_count
           ])
         }
         await sleep()
       }
 
-      request.range = 'A2:I99999'
-      request.resource.values = giftistarItems
+      const content = await getData('credentials.json')
+      const credentials = JSON.parse(content)
 
-      updateSheets()
+      const {
+        client_secret,
+        client_id,
+        redirect_uris
+      } = credentials.installed
+
+      const oAuth2Client = new google.auth.OAuth2(
+        client_id,
+        client_secret,
+        redirect_uris[0]
+      )
+
+      let tokenData
+      try {
+        tokenData = await getData(TOKEN_PATH)
+      } catch (err) {
+        const authUrl = oAuth2Client.generateAuthUrl({
+          access_type: 'offline',
+          scope: SCOPES
+        })
+        console.log('Authorizse this app by visiting this url:', authUrl)
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        })
+
+        const code = await askCode(rl)
+
+        const {tokens} = await oAuth2Client.getToken(code)
+
+        oAuth2Client.setCredentials(tokens)
+
+        await writeData(TOKEN_PATH, JSON.stringify(tokens))
+
+        console.log('Token stored to', TOKEN_PATH)
+
+        tokenData = await getData(TOKEN_PATH)
+      }
+
+      oAuth2Client.setCredentials(JSON.parse(tokenData))
+
+      console.log('onUpdate')
+      const sheets = google.sheets({
+        version: 'v4',
+        auth: oAuth2Client
+      })
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'A3:I99999',
+        valueInputOption: 'RAW',
+        resource: {
+          values: giftistarItems
+        }
+      })
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'A1',
+        valueInputOption: 'RAW',
+        resource: {
+          values: [
+            [`기프티스타 (업데이트된 날짜 ${moment().format('YY년 MM월 DD일')})`]
+          ]
+        }
+      })
+      console.log('dated')
+
     } catch (error) {
       console.log(error)
       process.exit()
@@ -141,7 +201,6 @@ program
         const { conCategory2s } = response.data
 
         for (const conCategory2 of conCategory2s) {
-          console.log(conCategory2.name)
           const response = await axios.get(
             `http://localhost:3010/cms/con-items?conCategory2Id=${
               conCategory2.id
@@ -149,7 +208,7 @@ program
             axiosOptions
           )
           const { conItems } = response.data
-
+          let ncncConItems = []
           for (const conItem of conItems) {
             ncncConItems.push([
               conItem.id,
@@ -164,8 +223,84 @@ program
           sleepShort()
         }
       }
-      request.range = 'M2:S99999'
-      request.resource.values = ncncConItems
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'sheet2!A3:G99999',
+        valueInputOption: 'RAW',
+        resource: {
+          values: ncncConItems
+        }
+      })
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'sheet2!A1',
+        valueInputOption: 'RAW',
+        resource: {
+          values: [
+            [`니콘내콘 (업데이트된 날짜 ${moment().format('YY년 MM월 DD일')})`]
+          ]
+        }
+      })
+      console.log('dated')
+
+    } catch (error) {
+      console.log(error)
+      process.exit()
+    }
+  })
+program.parse(process.argv)
+
+program
+  .version('0.1.0')
+  .command('sheet3')
+  .option('-t, --token [token]', '토큰을 입력합니다.')
+  .action(async options => {
+    let { token } = options
+
+    try {
+      const axiosOptions = {
+        headers: {
+          Authorization: `Bear ${token}`
+        }
+      }
+      const response = await axios.get(
+        'http://localhost:3010/cms/con-items',
+        axiosOptions
+      )
+      const { conItems } = response.data
+      let sheet3ConItems = []
+      for (const conItem of conItems) {
+        sheet3ConItems.push([
+          conItem.id,
+          conItem.conCategory2.name,
+          conItem.name,
+        ])
+      }
+      sleepShort()
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'sheet3!A3:C99999',
+        valueInputOption: 'RAW',
+        resource: {
+          values: sheet3ConItems
+        }
+      })
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'sheet3!A1',
+        valueInputOption: 'RAW',
+        resource: {
+          values: [
+            [`짝맞추기 (업데이트된 날짜 ${moment().format('YY년 MM월 DD일')})`]
+          ]
+        }
+      })
+      console.log('dated')
+
 
       updateSheets()
     } catch (error) {
@@ -175,74 +310,22 @@ program
   })
 program.parse(process.argv)
 
-function updateSheets() {
-  fs.readFile('credentials.json', (err, content) => {
-    if (err) return console.log('Error loading client secret file:', err)
-
-    authorize(JSON.parse(content), listMajors)
-  })
-}
-
-function authorize(credentials, callback) {
-  const { client_secret, client_id, redirect_uris } = credentials.installed
-  const oAuth2Client = new google.auth.OAuth2(
-    client_id,
-    client_secret,
-    redirect_uris[0]
-  )
-
-  fs.readFile(TOKEN_PATH, (err, token) => {
-    if (err) return getNewToken(oAuth2Client, callback)
-    oAuth2Client.setCredentials(JSON.parse(token))
-    callback(oAuth2Client)
-  })
-}
-
-function getNewToken(oAuth2Client, callback) {
-  const authUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: SCOPES
-  })
-  console.log('Authorizse this app by visiting this url:', authUrl)
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  })
-  rl.question('Enter the code from that page here: ', code => {
-    rl.close()
-    oAuth2Client.getToken(code, (err, token) => {
-      if (err) return callback(err)
-      oAuth2Client.setCredentials(token)
-      fs.writeFile(TOKEN_PATH, JSON.stringify(token), err => {
-        if (err) console.error(err)
-        console.log('Token stored to', TOKEN_PATH)
-      })
-      callback(oAuth2Client)
-    })
-  })
-}
-
-function listMajors(auth) {
-  const sheets = google.sheets({
-    version: 'v4',
-    auth
-  })
-
-  sheets.spreadsheets.values.update(request, function(err) {
-    if (err) {
-      console.log(err)
-    }
-  })
-  console.log('success')
-}
 
 function sleep() {
   return new Promise(resolve =>
-    setTimeout(resolve, Math.random() * (30000 - 10000) + 10000)
+    setTimeout(resolve, Math.random() * (20000 - 10000) + 5000)
   )
 }
 
 function sleepShort() {
   return new Promise(resolve =>
-    setTimeout(resolve, Math.random() * (3000 - 1000) + 5000))
+    setTimeout(resolve, Math.random() * (5000 - 1000) + 5000))
+}
+
+function askCode(rl) {
+  return new Promise(resolve => {
+    rl.question('Enter the code from that page here: ', code => {
+      resolve(code)
+    })
+  })
 }
