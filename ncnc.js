@@ -131,7 +131,7 @@ program
         valueInputOption: 'RAW',
         resource: {
           values: [
-            [`니콘내콘/ 짝맞추기 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:MM')})`]
+            [`니콘내콘/ 짝맞추기 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]
           ]
         }
       })
@@ -196,7 +196,7 @@ program
         valueInputOption: 'RAW',
         resource: {
           values: [
-            [`가격 비교 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:MM')})`]
+            [`가격 비교 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]
           ]
         }
       })

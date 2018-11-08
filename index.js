@@ -179,7 +179,7 @@ program
         valueInputOption: 'RAW',
         resource: {
           values: [
-            [`기프티스타 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:MM')})`]
+            [`기프티스타 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]
           ]
         }
       })
@@ -193,14 +193,14 @@ program
       const rows = res.data.values
       rows.map((row) => {
         giftistarDaily.push([
-          moment().format('YY년 MM월 DD일 HH:MM'),
+          moment().format('YY년 MM월 DD일 HH:mm'),
           row[0],
           row[1]
         ])
       });
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: 'giftistarDaily!A8:C8',
+        range: 'giftistarDaily!A22:C22',
         valueInputOption: 'RAW',
         resource: {
           values: giftistarDaily
@@ -221,7 +221,7 @@ program
       })
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: 'giftistarDaily!D8:E8',
+        range: 'giftistarDaily!D22:E22',
         valueInputOption: 'RAW',
         resource: {
           values: starbucksDaily
