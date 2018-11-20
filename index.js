@@ -200,7 +200,7 @@ program
       });
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: 'giftistarDaily!A22:C22',
+        range: 'giftistarDaily!A27:C27',
         valueInputOption: 'RAW',
         resource: {
           values: giftistarDaily
@@ -221,7 +221,7 @@ program
       })
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: 'giftistarDaily!D22:E22',
+        range: 'giftistarDaily!D27:E27',
         valueInputOption: 'RAW',
         resource: {
           values: starbucksDaily
