@@ -103,8 +103,8 @@ program
           }
         }
       )
-
       const { results } = response.data
+
       let brands = []
       for (const result of results) {
         brands.push({
@@ -147,6 +147,7 @@ program
           if (result.cupon_count === 0) {
             couponStockMoney = 0
           } else couponStockMoney = result.stock_money
+
           giftistarItems.push([
             result.objectId,
             brand.name,
@@ -157,7 +158,8 @@ program
             `${result.price - result.discount_step2}`,
             result.price,
             result.cupon_count,
-            couponStockMoney
+            couponStockMoney,
+            result.margin_rate
           ])
         }
         console.log(brand.name)
@@ -166,7 +168,7 @@ program
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: 'giftistar!A3:J99999',
+        range: 'giftistar!A3:K99999',
         valueInputOption: 'RAW',
         resource: {
           values: giftistarItems
@@ -192,39 +194,33 @@ program
       })
       const rows = res.data.values
       rows.map((row) => {
-        giftistarDaily.push([
-          moment().format('YY년 MM월 DD일 HH:mm'),
-          row[0],
-          row[1]
-        ])
+        giftistarDaily[0] = moment().format('YY년 MM월 DD일 HH:mm')
+        giftistarDaily[1] = row[0]
+        giftistarDaily[2] = row[1]
       });
-      await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: 'giftistarDaily!A27:C27',
-        valueInputOption: 'RAW',
-        resource: {
-          values: giftistarDaily
-        }
-      })
 
-      let starbucksDaily = []
       const res2 = await sheets.spreadsheets.values.get({
         spreadsheetId,
         range: 'giftistar!I4:J4',
       })
       const row2 = res2.data.values
       row2.map((row) => {
-        starbucksDaily.push([
-          row[0],
-          row[1]
-        ])
+        giftistarDaily[3] = row[0],
+        giftistarDaily[4] = row[1]
       })
+
+      const sheet1 = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'giftistarDaily!A1:E99999'
+      })
+      const list = sheet1.data.values
+
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: 'giftistarDaily!D27:E27',
+        range: `giftistarDaily!A${list.length+1}:E${list.length+1}`,
         valueInputOption: 'RAW',
         resource: {
-          values: starbucksDaily
+          values: [giftistarDaily]
         }
       })
 

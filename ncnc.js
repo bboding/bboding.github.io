@@ -62,17 +62,11 @@ program
           input: process.stdin,
           output: process.stdout
         })
-
         const code = await askCode(rl)
-
         const {tokens} = await oAuth2Client.getToken(code)
-
         oAuth2Client.setCredentials(tokens)
-
         await writeData(TOKEN_PATH, JSON.stringify(tokens))
-
         console.log('Token stored to', TOKEN_PATH)
-
         tokenData = await getData(TOKEN_PATH)
       }
 
@@ -94,6 +88,7 @@ program
         spreadsheetId,
         range: 'ncnc!A3:G99999'
       })
+      console.log('cleared')
 
       const response = await axios.get(
         'http://localhost:3010/cms/con-items',
@@ -101,121 +96,121 @@ program
       )
       const { conItems } = response.data
       let ncncConItems = []
-      ncncConItems.length = conItems[conItems.length - 1].id
-
-      for (const conItem of conItems) {
-        for (const i=0; i < 100; i++) {
+     
+      for (let i = 1; i <= conItems[conItems.length - 1].id; i++) {
+        ncncConItems.push([])
+        for (const conItem of conItems) {
           if (conItem.id === i) {
-            console.log(1)
-            ncncConItems[i].push([
-                  conItem.id,
-                  conItem.conCategory2.name,
-                  conItem.name
-            ])
+            ncncConItems[i-1] = [
+              conItem.id,
+              conItem.conCategory2.name,
+              conItem.name,
+              conItem.originalPrice,
+              conItem.askingPrice,
+              conItem.ncSellingPrice,
+              conItem.sfSellingPrice
+            ]
           }
         }
         sleepShort()
       }
-      console.log(ncncConItems)
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'ncnc!A1',
+        valueInputOption: 'RAW',
+        resource: {
+          values: [
+            [`니콘내콘 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]
+          ]
+        }
+      })
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'ncnc!A2:G2',
+        valueInputOption: 'RAW',
+        resource: {
+          values: [
+            ['상품Id', '브랜드', '상품명',	'원가',	'제시가',	'앱판매가',	'스팜판매가']
+          ]
+        }
+      })
       
-      // for (const conItem of conItems) {
-      //   ncncConItems.push([
-      //     conItem.id,
-      //     conItem.conCategory2.name,
-      //     conItem.name,
-      //     conItem.originalPrice,
-      //     conItem.askingPrice,
-      //     conItem.ncSellingPrice,
-      //     conItem.sfSellingPrice
-      //   ])
-      
-      // sleepShort()
-      // }
+       await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'ncnc!A1:H99999',
+        valueInputOption: 'RAW',
+        resource: {
+          values: ncncConItems
+        }
+      })
+      console.log('updated')
 
-      // await sheets.spreadsheets.values.update({
-      //   spreadsheetId,
-      //   range: 'ncnc!A3:G99999',
-      //   valueInputOption: 'RAW',
-      //   resource: {
-      //     values: ncncConItems
-      //   }
-      // })
 
-      // await sheets.spreadsheets.values.update({
-      //   spreadsheetId,
-      //   range: 'ncnc!A1',
-      //   valueInputOption: 'RAW',
-      //   resource: {
-      //     values: [
-      //       [`니콘내콘/ 짝맞추기 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]
-      //     ]
-      //   }
-      // })
-      // console.log('dated')
+      const sheet1 = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'giftistar!A3:H99999'
+      })
+      const giftiDatas = sheet1.data.values
 
-      // const sheet1 = await sheets.spreadsheets.values.get({
-      //   spreadsheetId,
-      //   range: 'A3:H99999'
-      // })
-      // const giftiDatas = sheet1.data.values
+      const sheet2 = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'ncnc!A3:H99999'
+      })
+      const ncncDatas = sheet2.data.values
 
-      // const sheet2 = await sheets.spreadsheets.values.get({
-      //   spreadsheetId,
-      //   range: 'ncnc!A3:H99999'
-      // })
-      // const ncncDatas = sheet2.data.values
+      let matchedItems = []
+      for (let i = 0; i < ncncDatas.length; i++) {
+        if(ncncDatas[i][7]) {
+          matchedItems.push([
+            ncncDatas[i][0],
+            ncncDatas[i][7]
+          ])
+        }
+      }
 
-      // let matchedItems = []
-      // for (let i = 0; i < ncncDatas.length; i++) {
-      //   if(ncncDatas[i][7]) {
-      //     matchedItems.push([
-      //       ncncDatas[i][0],
-      //       ncncDatas[i][7]
-      //     ])
-      //   }
-      // }
+      let list = []
+      for (let i = 0; i < ncncDatas.length; i++) {
+        for (let j = 0; j < matchedItems.length; j++) {
+          if (ncncDatas[i][0] === matchedItems[j][0]) {
+            for (let k = 0; k < giftiDatas.length; k++) {
+              if (giftiDatas[k][0] === matchedItems[j][1]) {
+                list.push([
+                  ncncDatas[i][1],
+                  ncncDatas[i][2],
+                  ncncDatas[i][3],
+                  giftiDatas[k][5],
+                  ncncDatas[i][4],
+                  giftiDatas[k][7],
+                  ncncDatas[i][5],
+                  ncncDatas[i][6]
+                ])
+              }
+            }
+          }
+        }
+      }
 
-      // let list = []
-      // for (let i = 0; i < ncncDatas.length; i++) {
-      //   for (let j = 0; j < matchedItems.length; j++) {
-      //     if (ncncDatas[i][0] === matchedItems[j][0]) {
-      //       for (let k = 0; k < giftiDatas.length; k++) {
-      //         if (giftiDatas[k][0] === matchedItems[j][1]) {
-      //           list.push([
-      //             ncncDatas[i][1],
-      //             ncncDatas[i][2],
-      //             ncncDatas[i][3],
-      //             giftiDatas[k][5],
-      //             ncncDatas[i][4],
-      //             giftiDatas[k][7],
-      //             ncncDatas[i][5],
-      //             ncncDatas[i][6]
-      //           ])
-      //         }
-      //       }
-      //     }
-      //   }
-      // }
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'comparison!A3:H99999',
+        valueInputOption: 'RAW',
+        resource: {
+          values: list
+        }
+      })
 
-      // await sheets.spreadsheets.values.update({
-      //   spreadsheetId,
-      //   range: 'comparison!A3:H99999',
-      //   valueInputOption: 'RAW',
-      //   resource: {
-      //     values: list
-      //   }
-      // })
-
-      // await sheets.spreadsheets.values.update({
-      //   spreadsheetId,
-      //   range: 'comparison!A1',
-      //   valueInputOption: 'RAW',
-      //   resource: {
-      //     values: [
-      //       [`가격 비교 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]
-      //     ]
-      //   }
-      // })
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'comparison!A1',
+        valueInputOption: 'RAW',
+        resource: {
+          values: [
+            [`가격 비교 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]
+          ]
+        }
+      })
 
     } catch (error) {
       console.log(error)
