@@ -6,7 +6,7 @@ const { google } = require('googleapis')
 const program = require('commander')
 const util = require('util')
 
-require('dotenv').config()
+require('dotenv').config({path:__dirname+'/.env'})
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 const TOKEN_PATH = process.env.GOOGLE_TOKEN_PATH
