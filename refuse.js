@@ -6,8 +6,10 @@ const { google } = require('googleapis')
 const program = require('commander')
 const util = require('util')
 
+require('dotenv').config()
+
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-const TOKEN_PATH = 'token.json'
+const TOKEN_PATH = process.env.GOOGLE_TOKEN_PATH
 
 const getData = util.promisify(fs.readFile)
 const writeData = util.promisify(fs.writeFile)
@@ -15,26 +17,27 @@ const writeData = util.promisify(fs.writeFile)
 program
   .version('0.1.0')
   .command('refuse')
-  .option('-t, --token [token]', '토큰을 입력합니다.')
-  .action(async options => {
-    let {
-      token
-    } = options
+  .action(async () => {
     try {
+      const base64 = Buffer.from(unescape(encodeURIComponent(`${process.env.API_USERNAME}:${process.env.API_PASSWORD}`))).toString('base64')
+      const result = await axios.request({method: 'post', url: `${process.env.API_URL}/admin-session/username`, headers: { Authorization: `Basic ${base64}`, [`Content-Type`]: 'application/json'} })
+
+      const { token } = result.data.adminSession
+
       const axiosOptions = {
         headers: {
           Authorization: `Bear ${token}`
         }
       }
 
-      const response = await axios.get('http://localhost:3010/cms/con-items/refuse',
+      const response = await axios.get(`${process.env.API_URL}/con-items/refuse`,
         axiosOptions)
 
       const {
         conItems
       } = response.data
 
-      const content = await getData('credentials.json')
+      const content = await getData(process.env.GOOGLE_CREDENTIAL_PATH)
       const credentials = JSON.parse(content)
 
       const {
