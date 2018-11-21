@@ -6,8 +6,10 @@ const { google } = require('googleapis')
 const program = require('commander')
 const util = require('util')
 
+require('dotenv').config()
+
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-const TOKEN_PATH = 'token.json'
+const TOKEN_PATH = process.env.GOOGLE_TOKEN_PATH
 
 const getData = util.promisify(fs.readFile)
 const writeData = util.promisify(fs.writeFile)
@@ -29,12 +31,14 @@ function askCode(rl) {
 program
   .version('0.1.0')
   .command('ncnc')
-  .option('-t, --token [token]', '토큰을 입력합니다.')
-  .action(async options => {
-    let { token } = options
-
+  .action(async () => {
     try {
-      const content = await getData('credentials.json')
+      const base64 = Buffer.from(unescape(encodeURIComponent('monstercrab:123qwe'))).toString('base64')
+      const result = await axios.request({method: 'post', url: `${process.env.API_URL}/admin-session/username`, headers: { Authorization: `Basic ${base64}`, [`Content-Type`]: 'application/json'} })
+
+      const { token } = result.data.adminSession
+
+      const content = await getData(process.env.GOOGLE_CREDENTIAL_PATH)
       const credentials = JSON.parse(content)
 
       const {
@@ -91,12 +95,12 @@ program
       console.log('cleared')
 
       const response = await axios.get(
-        'http://localhost:3010/cms/con-items',
+        `${process.env.API_URL}/con-items`,
         axiosOptions
       )
       const { conItems } = response.data
       let ncncConItems = []
-     
+
       for (let i = 1; i <= conItems[conItems.length - 1].id; i++) {
         ncncConItems.push([])
         for (const conItem of conItems) {
@@ -136,7 +140,7 @@ program
           ]
         }
       })
-      
+
        await sheets.spreadsheets.values.update({
         spreadsheetId,
         range: 'ncnc!A1:H99999',
