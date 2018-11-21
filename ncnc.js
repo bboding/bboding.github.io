@@ -33,7 +33,7 @@ program
   .command('ncnc')
   .action(async () => {
     try {
-      const base64 = Buffer.from(unescape(encodeURIComponent('monstercrab:123qwe'))).toString('base64')
+      const base64 = Buffer.from(unescape(encodeURIComponent(`${process.env.API_USERNAME}:${process.env.API_PASSWORD}`))).toString('base64')
       const result = await axios.request({method: 'post', url: `${process.env.API_URL}/admin-session/username`, headers: { Authorization: `Basic ${base64}`, [`Content-Type`]: 'application/json'} })
 
       const { token } = result.data.adminSession
