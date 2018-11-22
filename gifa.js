@@ -6,34 +6,22 @@ const { google } = require('googleapis')
 const program = require('commander')
 const util = require('util')
 
+require('dotenv').config({path:__dirname+'/.env'})
+
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-const TOKEN_PATH = 'token.json'
+const TOKEN_PATH = process.env.GOOGLE_TOKEN_PATH
 
 const getData = util.promisify(fs.readFile)
 const writeData = util.promisify(fs.writeFile)
 
 const spreadsheetId = '17vx2FXgG1Ylzt2SWjuRkIre_4O3dsb49q1SmT408fQo'
 
-function sleep() {
-  return new Promise(resolve =>
-    setTimeout(resolve, Math.random() * (2000 - 1000) + 500)
-  )
-}
-
-function askCode(rl) {
-  return new Promise(resolve => {
-    rl.question('Enter the code from that page here: ', code => {
-      resolve(code)
-    })
-  })
-}
-
 program
   .version('0.1.0')
   .command('giftistar')
   .action(async () => {
     try {
-      const content = await getData('credentials.json')
+      const content = await getData(process.env.GOOGLE_CREDENTIAL_PATH)
       const credentials = JSON.parse(content)
 
       const {
@@ -230,3 +218,16 @@ program
   })
 program.parse(process.argv)
 
+function sleep() {
+  return new Promise(resolve =>
+    setTimeout(resolve, Math.random() * (2000 - 1000) + 500)
+  )
+}
+
+function askCode(rl) {
+  return new Promise(resolve => {
+    rl.question('Enter the code from that page here: ', code => {
+      resolve(code)
+    })
+  })
+}
