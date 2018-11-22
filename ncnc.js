@@ -116,7 +116,7 @@ program
             ]
           }
         }
-        sleepShort()
+        await sleepShort()
       }
 
       await sheets.spreadsheets.values.update({
