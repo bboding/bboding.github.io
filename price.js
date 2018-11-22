@@ -100,9 +100,7 @@ program
               ])
             }
           }
-          await sleepShort()
         }
-        await sleep()
 
         let spreadsheetId = ''
 
@@ -209,7 +207,6 @@ program
           }
         })
         console.log('listed')
-        console.log(ncncConItems)
 
         const solid = {
           style: "SOLID"
@@ -253,8 +250,9 @@ program
           }
         })
         console.log('dated')
+        console.log(moment().format('YYMMDD HH:mm:ss'))
 
-        sleepShort()
+        await sleep()
       }
 
       process.exit()
@@ -274,14 +272,10 @@ function askCode(rl) {
   })
 }
 
-function sleepShort() {
-  return new Promise(resolve =>
-    setTimeout(resolve, Math.random() * (3000 - 1000) + 5000))
-}
 
 function sleep() {
   return new Promise(resolve => 
-    setTimeout(resolve, 15000))
+    setTimeout(resolve, 3000))
 }
 
 

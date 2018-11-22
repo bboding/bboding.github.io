@@ -214,7 +214,7 @@ program
         }
       })
       console.log('dated')
-      console.log(moment().format('YYMMDD HH:mm:ss'),)
+      console.log(moment().format('YYMMDD HH:mm:ss'))
 
       process.exit()
     } catch (error) {

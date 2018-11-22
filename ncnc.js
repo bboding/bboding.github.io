@@ -18,7 +18,7 @@ const spreadsheetId = '17vx2FXgG1Ylzt2SWjuRkIre_4O3dsb49q1SmT408fQo'
 
 function sleepShort() {
   return new Promise(resolve =>
-    setTimeout(resolve, Math.random() * (5000 - 1000) + 5000))
+    setTimeout(resolve, 100))
 }
 
 function askCode(rl) {
@@ -164,34 +164,20 @@ program
       })
       const ncncDatas = sheet2.data.values
 
-      let matchedItems = []
-      for (let i = 0; i < ncncDatas.length; i++) {
-        if(ncncDatas[i][7]) {
-          matchedItems.push([
-            ncncDatas[i][0],
-            ncncDatas[i][7]
-          ])
-        }
-      }
-
       let list = []
       for (let i = 0; i < ncncDatas.length; i++) {
-        for (let j = 0; j < matchedItems.length; j++) {
-          if (ncncDatas[i][0] === matchedItems[j][0]) {
-            for (let k = 0; k < giftiDatas.length; k++) {
-              if (giftiDatas[k][0] === matchedItems[j][1]) {
-                list.push([
-                  ncncDatas[i][1],
-                  ncncDatas[i][2],
-                  ncncDatas[i][3],
-                  giftiDatas[k][5],
-                  ncncDatas[i][4],
-                  giftiDatas[k][7],
-                  ncncDatas[i][5],
-                  ncncDatas[i][6]
-                ])
-              }
-            }
+        for (let k = 0; k < giftiDatas.length; k++) {
+          if (giftiDatas[k][0] === ncncDatas[i][7]) {
+            list.push([
+              ncncDatas[i][1],
+              ncncDatas[i][2],
+              ncncDatas[i][3],
+              giftiDatas[k][5],
+              ncncDatas[i][4],
+              giftiDatas[k][7],
+              ncncDatas[i][5],
+              ncncDatas[i][6]
+            ])
           }
         }
       }
@@ -215,6 +201,7 @@ program
           ]
         }
       })
+      
 
     } catch (error) {
       console.log(error)
