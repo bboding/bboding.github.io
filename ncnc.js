@@ -169,6 +169,7 @@ program
         for (let k = 0; k < giftiDatas.length; k++) {
           if (giftiDatas[k][0] === ncncDatas[i][7]) {
             list.push([
+              ncncDatas[i][0],
               ncncDatas[i][1],
               ncncDatas[i][2],
               ncncDatas[i][3],
@@ -184,7 +185,7 @@ program
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: 'comparison!A3:H99999',
+        range: 'comparison!A3:I99999',
         valueInputOption: 'RAW',
         resource: {
           values: list

@@ -147,7 +147,9 @@ program
             result.price,
             result.cupon_count,
             couponStockMoney,
-            result.margin_rate
+            result.margin_rate,
+            result.average_sell_count,
+            result.target_buy_count
           ])
         }
         console.log(brand.name)
@@ -156,7 +158,7 @@ program
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: 'giftistar!A3:K99999',
+        range: 'giftistar!A3:M99999',
         valueInputOption: 'RAW',
         resource: {
           values: giftistarItems
@@ -220,7 +222,7 @@ program.parse(process.argv)
 
 function sleep() {
   return new Promise(resolve =>
-    setTimeout(resolve, Math.random() * (2000 - 1000) + 500)
+    setTimeout(resolve, Math.random() * (2000 - 1000) + 5000)
   )
 }
 
