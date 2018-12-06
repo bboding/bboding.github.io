@@ -18,7 +18,7 @@ const spreadsheetId = '17vx2FXgG1Ylzt2SWjuRkIre_4O3dsb49q1SmT408fQo'
 
 program
   .version('0.1.0')
-  .command('giftistar')
+  .command('gifa')
   .action(async () => {
     try {
       const content = await getData(process.env.GOOGLE_CREDENTIAL_PATH)
@@ -51,26 +51,22 @@ program
         })
 
         const code = await askCode(rl)
-
         const {tokens} = await oAuth2Client.getToken(code)
-
         oAuth2Client.setCredentials(tokens)
-
         await writeData(TOKEN_PATH, JSON.stringify(tokens))
-
         console.log('Token stored to', TOKEN_PATH)
-
         tokenData = await getData(TOKEN_PATH)
       }
 
       oAuth2Client.setCredentials(JSON.parse(tokenData))
 
-      console.log('onUpdate')
       const sheets = google.sheets({
         version: 'v4',
         auth: oAuth2Client
       })
 
+      console.log(moment().format('YYMMDD HH:mm:ss'))
+      console.log('onUpdate')
       let giftistarItems = []
       const response = await axios.post(
         'https://api.giftistar.com/parse/classes/Brand',
@@ -175,7 +171,6 @@ program
           ]
         }
       })
-      console.log('dated')
 
       let giftistarDaily = []
       const res = await sheets.spreadsheets.values.get({
@@ -198,22 +193,152 @@ program
         giftistarDaily[3] = row[0],
         giftistarDaily[4] = row[1]
       })
+      console.log('giftistar-updated')
 
-      const sheet1 = await sheets.spreadsheets.values.get({
+      const sheetGifa = await sheets.spreadsheets.values.get({
         spreadsheetId,
         range: 'giftistarDaily!A1:E99999'
       })
-      const list = sheet1.data.values
+      const listGifa = sheetGifa.data.values
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `giftistarDaily!A${list.length+1}:E${list.length+1}`,
+        range: `giftistarDaily!A${listGifa.length+1}:E${listGifa.length+1}`,
         valueInputOption: 'RAW',
         resource: {
           values: [giftistarDaily]
         }
       })
+      console.log('gifitstarDaily-updated')
 
+      console.log('ncnc-onUpdate')
+      const base64 = Buffer.from(unescape(encodeURIComponent(`${process.env.API_USERNAME}:${process.env.API_PASSWORD}`))).toString('base64')
+      const result = await axios.request({method: 'post', url: `${process.env.API_URL}/admin-session/username`, headers: { Authorization: `Basic ${base64}`, [`Content-Type`]: 'application/json'} })
+
+      const { token } = result.data.adminSession
+
+      const axiosOptions = {
+        headers: {
+          Authorization: `Bear ${token}`
+        }
+      }
+
+      await sheets.spreadsheets.values.clear({
+        spreadsheetId,
+        range: 'ncnc!A3:G99999'
+      })
+      console.log('cleared')
+
+      const responseConItem = await axios.get(
+        `${process.env.API_URL}/con-items`,
+        axiosOptions
+      )
+      const { conItems } = responseConItem.data
+      let ncncConItems = []
+
+      for (let i = 1; i <= conItems[conItems.length - 1].id; i++) {
+        ncncConItems.push([])
+        for (const conItem of conItems) {
+          if (conItem.id === i) {
+            ncncConItems[i-1] = [
+              conItem.id,
+              conItem.conCategory2.name,
+              conItem.name,
+              conItem.originalPrice,
+              conItem.askingPrice,
+              conItem.ncSellingPrice,
+              conItem.sfSellingPrice
+            ]
+          }
+        }
+        await sleepShort()
+      }
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'ncnc!A1',
+        valueInputOption: 'RAW',
+        resource: {
+          values: [
+            [`니콘내콘 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]
+          ]
+        }
+      })
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'ncnc!A2:G2',
+        valueInputOption: 'RAW',
+        resource: {
+          values: [
+            ['상품Id', '브랜드', '상품명',	'원가',	'제시가',	'앱판매가',	'스팜판매가']
+          ]
+        }
+      })
+
+       await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'ncnc!A1:H99999',
+        valueInputOption: 'RAW',
+        resource: {
+          values: ncncConItems
+        }
+      })
+      console.log('ncnc-updated')
+
+
+      const sheet1 = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'giftistar!A3:H99999'
+      })
+      const giftiDatas = sheet1.data.values
+
+      const sheet2 = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'ncnc!A3:H99999'
+      })
+      const ncncDatas = sheet2.data.values
+
+      let list = []
+      for (let i = 0; i < ncncDatas.length; i++) {
+        for (let k = 0; k < giftiDatas.length; k++) {
+          if (giftiDatas[k][0] === ncncDatas[i][7]) {
+            list.push([
+              ncncDatas[i][0],
+              ncncDatas[i][1],
+              ncncDatas[i][2],
+              ncncDatas[i][3],
+              giftiDatas[k][5],
+              ncncDatas[i][4],
+              giftiDatas[k][7],
+              ncncDatas[i][5],
+              ncncDatas[i][6]
+            ])
+          }
+        }
+      }
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'comparison!A3:I99999',
+        valueInputOption: 'RAW',
+        resource: {
+          values: list
+        }
+      })
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'comparison!A1',
+        valueInputOption: 'RAW',
+        resource: {
+          values: [
+            [`가격 비교 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]
+          ]
+        }
+      })
+      console.log('comparison-updated')
+      console.log(moment().format('YYMMDD HH:mm:ss'))
     } catch (error) {
       console.log(error)
     }
@@ -224,6 +349,11 @@ function sleep() {
   return new Promise(resolve =>
     setTimeout(resolve, Math.random() * (2000 - 1000) + 5000)
   )
+}
+
+function sleepShort() {
+  return new Promise(resolve =>
+    setTimeout(resolve, 100))
 }
 
 function askCode(rl) {
