@@ -171,45 +171,7 @@ program
           ]
         }
       })
-
-      let giftistarDaily = []
-      const res = await sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: 'giftistar!I1:J1'
-      })
-      const rows = res.data.values
-      rows.map((row) => {
-        giftistarDaily[0] = moment().format('YY년 MM월 DD일 HH:mm')
-        giftistarDaily[1] = row[0]
-        giftistarDaily[2] = row[1]
-      });
-
-      const res2 = await sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: 'giftistar!I4:J4',
-      })
-      const row2 = res2.data.values
-      row2.map((row) => {
-        giftistarDaily[3] = row[0],
-        giftistarDaily[4] = row[1]
-      })
       console.log('giftistar-updated')
-
-      const sheetGifa = await sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: 'giftistarDaily!A1:E99999'
-      })
-      const listGifa = sheetGifa.data.values
-
-      await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: `giftistarDaily!A${listGifa.length+1}:E${listGifa.length+1}`,
-        valueInputOption: 'RAW',
-        resource: {
-          values: [giftistarDaily]
-        }
-      })
-      console.log('gifitstarDaily-updated')
 
       console.log('ncnc-onUpdate')
       const base64 = Buffer.from(unescape(encodeURIComponent(`${process.env.API_USERNAME}:${process.env.API_PASSWORD}`))).toString('base64')
@@ -289,7 +251,7 @@ program
 
       const sheet1 = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: 'giftistar!A3:H99999'
+        range: 'giftistar!A3:J99999'
       })
       const giftiDatas = sheet1.data.values
 
@@ -300,8 +262,10 @@ program
       const ncncDatas = sheet2.data.values
 
       let list = []
-      for (let i = 0; i < ncncDatas.length; i++) {
-        for (let k = 0; k < giftiDatas.length; k++) {
+      const ncncDatasLength = ncncDatas.length
+      const giftiDatasLength = giftiDatas.length
+      for (let i = 0; i < ncncDatasLength; i++) {
+        for (let k = 0; k < giftiDatasLength; k++) {
           if (giftiDatas[k][0] === ncncDatas[i][7]) {
             list.push([
               ncncDatas[i][0],
@@ -338,6 +302,64 @@ program
         }
       })
       console.log('comparison-updated')
+
+      let giftistarDaily = []
+      const res = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'giftistar!I1:J1'
+      })
+      const totalAmounts = res.data.values
+      totalAmounts.map((totalAmount) => {
+        giftistarDaily[0] = moment().format('YY년 MM월 DD일 HH:mm')
+        giftistarDaily[1] = totalAmount[0]
+        giftistarDaily[2] = totalAmount[1]
+      });
+
+      // YXmMasiZGG = 스타벅스 카페아메리카노
+      for (let i = 0; i < giftiDatasLength; i++) {
+        if (giftiDatas[i][0] === 'YXmMasiZGG') {
+          giftistarDaily[3] = giftiDatas[i][8]
+          giftistarDaily[4] = giftiDatas[i][9]
+          giftistarDaily[5] = giftiDatas[i][5]
+          giftistarDaily[6] = giftiDatas[i][7]
+        }
+      }
+
+      // cLBdgWlMh1 = 이디야 카페아메리카노
+      for (let i = 0; i < giftiDatasLength; i++) {
+        if (giftiDatas[i][0] === 'cLBdgWlMh1') {
+          giftistarDaily[7] = giftiDatas[i][8]
+          giftistarDaily[8] = giftiDatas[i][5]
+          giftistarDaily[9] = giftiDatas[i][7]
+        }
+      }
+
+      // cjGsVBgQUN = 투썸 아메리카노 R
+      for (let i = 0; i < giftiDatasLength; i++) {
+        if (giftiDatas[i][0] === 'cjGsVBgQUN') {
+          giftistarDaily[10] = giftiDatas[i][8]
+          giftistarDaily[11] = giftiDatas[i][5]
+          giftistarDaily[12] = giftiDatas[i][7]
+        }
+      }
+    
+      const sheetGifa = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'giftistarDaily!A1:M999999'
+      })
+      const listGifa = sheetGifa.data.values
+      const nextRow = listGifa.length + 1
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `giftistarDaily!A${nextRow}:M${nextRow}`,
+        valueInputOption: 'RAW',
+        resource: {
+          values: [giftistarDaily]
+        }
+      })
+      console.log('gifitstarDaily-updated')
+
       console.log(moment().format('YYMMDD HH:mm:ss'))
     } catch (error) {
       console.log(error)
