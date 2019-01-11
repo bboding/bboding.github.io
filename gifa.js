@@ -67,6 +67,82 @@ program
 
       console.log(moment().format('YYMMDD HH:mm:ss'))
       console.log('onUpdate')
+
+      const responseDayBuy = await axios.post(
+        'https://api.giftistar.com/parse/classes/Analytics',
+        {
+          "where": {
+            "type":"daybuy"
+          },
+          "limit": 7,
+          "order": "-stamp",
+          "_method": "GET",
+          "_ApplicationId": "giftistar",
+          "_ClientVersion": "js1.10.0",
+          "_InstallationId": "deb592bb-fb7b-f11c-5cce-b3ab549c6e1e"
+        },
+        {
+          headers: {
+            'content-type': 'application/json'
+          }
+        }
+      )
+      const dayBuys = responseDayBuy.data.results
+
+      let dayBuyList = []
+
+      for (const dayBuy of dayBuys) {
+        dayBuyList.push([
+          dayBuy.stamp,
+          dayBuy.buy_sum,
+          dayBuy.count
+        ])
+      }
+
+      const responseDaySell = await axios.post(
+        'https://api.giftistar.com/parse/classes/Analytics',
+        {
+          "where": {
+            "type":"daysell"
+          },
+          "limit": 7,
+          "order": "-stamp",
+          "_method": "GET",
+          "_ApplicationId": "giftistar",
+          "_ClientVersion": "js1.10.0",
+          "_InstallationId": "deb592bb-fb7b-f11c-5cce-b3ab549c6e1e"
+        },
+        {
+          headers: {
+            'content-type': 'application/json'
+          }
+        }
+      )
+      const daySells = responseDaySell.data.results
+
+      let daySellList = []
+      
+      for (const daySell of daySells) {
+        daySellList.push([
+          daySell.sales,
+          daySell.count,
+          daySell.rate,
+          daySell.balance
+        ])
+      }
+      
+      let dayBuySellList = []
+      
+      dayBuySellList.push([
+        dayBuyList[1][0],
+        dayBuyList[1][1],
+        dayBuyList[1][2],
+        daySellList[1][0],
+        daySellList[1][1],
+        daySellList[1][2],
+        daySellList[1][3]
+      ])
+
       let giftistarItems = []
       const response = await axios.post(
         'https://api.giftistar.com/parse/classes/Brand',
@@ -151,6 +227,22 @@ program
         console.log(brand.name)
         await sleep()
       }
+
+      const sheetBuySell = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'buySellCount!A1:G999999'
+      })
+      const buySellCount = sheetBuySell.data.values
+      const buySellNextRow = buySellCount.length + 1
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `buySellCount!A${buySellNextRow}:G${buySellNextRow}`,
+        valueInputOption: 'RAW',
+        resource: {
+          values: dayBuySellList
+        }
+      })
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
