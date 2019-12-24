@@ -6,7 +6,7 @@ const { google } = require('googleapis')
 const program = require('commander')
 const util = require('util')
 
-require('dotenv').config({path:__dirname+'/.env'})
+require('dotenv').config({ path: __dirname + '/.env' })
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 const TOKEN_PATH = process.env.GOOGLE_TOKEN_PATH
@@ -24,11 +24,7 @@ program
       const content = await getData(process.env.GOOGLE_CREDENTIAL_PATH)
       const credentials = JSON.parse(content)
 
-      const {
-        client_secret,
-        client_id,
-        redirect_uris
-      } = credentials.installed
+      const { client_secret, client_id, redirect_uris } = credentials.installed
 
       const oAuth2Client = new google.auth.OAuth2(
         client_id,
@@ -51,7 +47,7 @@ program
         })
 
         const code = await askCode(rl)
-        const {tokens} = await oAuth2Client.getToken(code)
+        const { tokens } = await oAuth2Client.getToken(code)
         oAuth2Client.setCredentials(tokens)
         await writeData(TOKEN_PATH, JSON.stringify(tokens))
         console.log('Token stored to', TOKEN_PATH)
@@ -71,15 +67,15 @@ program
       const responseDayBuy = await axios.post(
         'https://api.giftistar.com/parse/classes/Analytics',
         {
-          "where": {
-            "type":"daybuy"
+          where: {
+            type: 'daybuy'
           },
-          "limit": 7,
-          "order": "-stamp",
-          "_method": "GET",
-          "_ApplicationId": "giftistar",
-          "_ClientVersion": "js1.10.0",
-          "_InstallationId": "deb592bb-fb7b-f11c-5cce-b3ab549c6e1e"
+          limit: 7,
+          order: '-stamp',
+          _method: 'GET',
+          _ApplicationId: 'giftistar',
+          _ClientVersion: 'js1.10.0',
+          _InstallationId: 'deb592bb-fb7b-f11c-5cce-b3ab549c6e1e'
         },
         {
           headers: {
@@ -92,25 +88,21 @@ program
       let dayBuyList = []
 
       for (const dayBuy of dayBuys) {
-        dayBuyList.push([
-          dayBuy.stamp,
-          dayBuy.buy_sum,
-          dayBuy.count
-        ])
+        dayBuyList.push([dayBuy.stamp, dayBuy.buy_sum, dayBuy.count])
       }
 
       const responseDaySell = await axios.post(
         'https://api.giftistar.com/parse/classes/Analytics',
         {
-          "where": {
-            "type":"daysell"
+          where: {
+            type: 'daysell'
           },
-          "limit": 7,
-          "order": "-stamp",
-          "_method": "GET",
-          "_ApplicationId": "giftistar",
-          "_ClientVersion": "js1.10.0",
-          "_InstallationId": "deb592bb-fb7b-f11c-5cce-b3ab549c6e1e"
+          limit: 7,
+          order: '-stamp',
+          _method: 'GET',
+          _ApplicationId: 'giftistar',
+          _ClientVersion: 'js1.10.0',
+          _InstallationId: 'deb592bb-fb7b-f11c-5cce-b3ab549c6e1e'
         },
         {
           headers: {
@@ -121,7 +113,7 @@ program
       const daySells = responseDaySell.data.results
 
       let daySellList = []
-      
+
       for (const daySell of daySells) {
         daySellList.push([
           daySell.sales,
@@ -130,9 +122,9 @@ program
           daySell.balance
         ])
       }
-      
+
       let dayBuySellList = []
-      
+
       dayBuySellList.push([
         dayBuyList[1][0],
         dayBuyList[1][1],
@@ -202,7 +194,7 @@ program
           }
         )
         const { results } = res.data
-        
+
         for (const result of results) {
           if (result.cupon_count === 0) {
             couponStockMoney = 0
@@ -259,15 +251,32 @@ program
         valueInputOption: 'RAW',
         resource: {
           values: [
-            [`기프티스타 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]
+            [
+              `기프티스타 (시트 업데이트 ${moment().format(
+                'YY년 MM월 DD일 HH:mm'
+              )})`
+            ]
           ]
         }
       })
       console.log('giftistar-updated')
 
       console.log('ncnc-onUpdate')
-      const base64 = Buffer.from(unescape(encodeURIComponent(`${process.env.API_USERNAME}:${process.env.API_PASSWORD}`))).toString('base64')
-      const result = await axios.request({method: 'post', url: `${process.env.API_URL}/admin-session/username`, headers: { Authorization: `Basic ${base64}`, [`Content-Type`]: 'application/json'} })
+      const base64 = Buffer.from(
+        unescape(
+          encodeURIComponent(
+            `${process.env.API_USERNAME}:${process.env.API_PASSWORD}`
+          )
+        )
+      ).toString('base64')
+      const result = await axios.request({
+        method: 'post',
+        url: `${process.env.API_URL}/admin-session/username`,
+        headers: {
+          Authorization: `Basic ${base64}`,
+          [`Content-Type`]: 'application/json'
+        }
+      })
 
       const { token } = result.data.adminSession
 
@@ -294,7 +303,7 @@ program
         ncncConItems.push([])
         for (const conItem of conItems) {
           if (conItem.id === i) {
-            ncncConItems[i-1] = [
+            ncncConItems[i - 1] = [
               conItem.id,
               conItem.conCategory2.name,
               conItem.name,
@@ -314,7 +323,11 @@ program
         valueInputOption: 'RAW',
         resource: {
           values: [
-            [`니콘내콘 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]
+            [
+              `니콘내콘 (시트 업데이트 ${moment().format(
+                'YY년 MM월 DD일 HH:mm'
+              )})`
+            ]
           ]
         }
       })
@@ -325,12 +338,20 @@ program
         valueInputOption: 'RAW',
         resource: {
           values: [
-            ['상품Id', '브랜드', '상품명',	'원가',	'제시가',	'앱판매가',	'스팜판매가']
+            [
+              '상품Id',
+              '브랜드',
+              '상품명',
+              '원가',
+              '제시가',
+              '앱판매가',
+              '스팜판매가'
+            ]
           ]
         }
       })
 
-       await sheets.spreadsheets.values.update({
+      await sheets.spreadsheets.values.update({
         spreadsheetId,
         range: 'ncnc!A1:H99999',
         valueInputOption: 'RAW',
@@ -339,7 +360,6 @@ program
         }
       })
       console.log('ncnc-updated')
-
 
       const sheet1 = await sheets.spreadsheets.values.get({
         spreadsheetId,
@@ -389,7 +409,11 @@ program
         valueInputOption: 'RAW',
         resource: {
           values: [
-            [`가격 비교 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]
+            [
+              `가격 비교 (시트 업데이트 ${moment().format(
+                'YY년 MM월 DD일 HH:mm'
+              )})`
+            ]
           ]
         }
       })
@@ -401,11 +425,11 @@ program
         range: 'giftistar!I1:J1'
       })
       const totalAmounts = res.data.values
-      totalAmounts.map((totalAmount) => {
+      totalAmounts.map(totalAmount => {
         giftistarDaily[0] = moment().format('YY년 MM월 DD일 HH:mm')
         giftistarDaily[1] = totalAmount[0]
         giftistarDaily[2] = totalAmount[1]
-      });
+      })
 
       // YXmMasiZGG = 스타벅스 카페아메리카노
       for (let i = 0; i < giftiDatasLength; i++) {
@@ -434,7 +458,7 @@ program
           giftistarDaily[12] = giftiDatas[i][7]
         }
       }
-    
+
       const sheetGifa = await sheets.spreadsheets.values.get({
         spreadsheetId,
         range: 'giftistarDaily!A1:M999999'
@@ -466,8 +490,7 @@ function sleep() {
 }
 
 function sleepShort() {
-  return new Promise(resolve =>
-    setTimeout(resolve, 100))
+  return new Promise(resolve => setTimeout(resolve, 100))
 }
 
 function askCode(rl) {
