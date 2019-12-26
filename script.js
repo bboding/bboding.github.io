@@ -175,18 +175,8 @@ program
         }
       })
       console.log('giftistar-updated', moment().format('YYMMDD HH:mm:ss'))
-    } catch (err) {
-      console.log(err)
-    }
-  })
 
-program
-  .command('ncnc')
-  .action(async () => {
-    try {
       console.log('ncnc-on-update', moment().format('YYMMDD HH:mm:ss'))
-
-      await getTokenData(tokenData)
 
       const base64 = Buffer.from(
         unescape(
@@ -286,18 +276,8 @@ program
         }
       })
       console.log('ncnc-updated', moment().format('YYMMDD HH:mm:ss'))
-    } catch (err) {
-      console.log(err)
-    }
-  })
 
-program
-  .command('comparison')
-  .action(async () => {
-    try {
       console.log('comparison-on-update', moment().format('YYMMDD HH:mm:ss'))
-
-      await getTokenData(tokenData)
 
       const sheet1 = await sheets.spreadsheets.values.get({
         spreadsheetId,
@@ -356,18 +336,8 @@ program
         }
       })
       console.log('comparison-updated', moment().format('YYMMDD HH:mm:ss'))
-    } catch (err) {
-      console.log(err)
-    }
-  })
 
-program
-  .command('gifa-daily')
-  .action(async () => {
-    try {
       console.log('gifa-daily-on-update', moment().format('YYMMDD HH:mm:ss'))
-
-      await getTokenData(tokenData)
 
       let giftistarDaily = []
 
@@ -382,13 +352,6 @@ program
         giftistarDaily[1] = totalAmount[0]
         giftistarDaily[2] = totalAmount[1]
       })
-
-      const sheet1 = await sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: 'giftistar!A3:J99999'
-      })
-      const giftiDatas = sheet1.data.values
-      const giftiDatasLength = giftiDatas.length
 
       // YXmMasiZGG = 스타벅스 카페아메리카노
       for (let i = 0; i < giftiDatasLength; i++) {
