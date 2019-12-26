@@ -16,124 +16,55 @@ const writeData = util.promisify(fs.writeFile)
 
 const spreadsheetId = '17vx2FXgG1Ylzt2SWjuRkIre_4O3dsb49q1SmT408fQo'
 
+let tokenData, sheets
+
+async function getTokenData(tokenData) {
+  const content = await getData(process.env.GOOGLE_CREDENTIAL_PATH)
+  const credentials = JSON.parse(content)
+
+  const { client_secret, client_id, redirect_uris } = credentials.installed
+
+  const oAuth2Client = new google.auth.OAuth2(
+    client_id,
+    client_secret,
+    redirect_uris[0]
+  )
+  try {
+    tokenData = await getData(TOKEN_PATH)
+  } catch (err) {
+    const authUrl = oAuth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: SCOPES
+    })
+    console.log('Authorizse this app by visiting this url:', authUrl)
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    })
+
+    const code = await askCode(rl)
+    const { tokens } = await oAuth2Client.getToken(code)
+    oAuth2Client.setCredentials(tokens)
+    await writeData(TOKEN_PATH, JSON.stringify(tokens))
+    console.log('Token stored to', TOKEN_PATH)
+    tokenData = await getData(TOKEN_PATH)
+  }
+
+  oAuth2Client.setCredentials(JSON.parse(tokenData))
+
+  sheets = google.sheets({
+    version: 'v4',
+    auth: oAuth2Client
+  })
+}
+
 program
-  .version('0.1.0')
   .command('gifa')
   .action(async () => {
     try {
-      const content = await getData(process.env.GOOGLE_CREDENTIAL_PATH)
-      const credentials = JSON.parse(content)
+      console.log('gifa-on-update', moment().format('YYMMDD HH:mm:ss'))
 
-      const { client_secret, client_id, redirect_uris } = credentials.installed
-
-      const oAuth2Client = new google.auth.OAuth2(
-        client_id,
-        client_secret,
-        redirect_uris[0]
-      )
-
-      let tokenData
-      try {
-        tokenData = await getData(TOKEN_PATH)
-      } catch (err) {
-        const authUrl = oAuth2Client.generateAuthUrl({
-          access_type: 'offline',
-          scope: SCOPES
-        })
-        console.log('Authorizse this app by visiting this url:', authUrl)
-        const rl = readline.createInterface({
-          input: process.stdin,
-          output: process.stdout
-        })
-
-        const code = await askCode(rl)
-        const { tokens } = await oAuth2Client.getToken(code)
-        oAuth2Client.setCredentials(tokens)
-        await writeData(TOKEN_PATH, JSON.stringify(tokens))
-        console.log('Token stored to', TOKEN_PATH)
-        tokenData = await getData(TOKEN_PATH)
-      }
-
-      oAuth2Client.setCredentials(JSON.parse(tokenData))
-
-      const sheets = google.sheets({
-        version: 'v4',
-        auth: oAuth2Client
-      })
-
-      console.log(moment().format('YYMMDD HH:mm:ss'))
-      console.log('onUpdate')
-
-      const responseDayBuy = await axios.post(
-        'https://api.giftistar.com/parse/classes/Analytics',
-        {
-          where: {
-            type: 'daybuy'
-          },
-          limit: 7,
-          order: '-stamp',
-          _method: 'GET',
-          _ApplicationId: 'giftistar',
-          _ClientVersion: 'js1.10.0',
-          _InstallationId: 'deb592bb-fb7b-f11c-5cce-b3ab549c6e1e'
-        },
-        {
-          headers: {
-            'content-type': 'application/json'
-          }
-        }
-      )
-      const dayBuys = responseDayBuy.data.results
-
-      let dayBuyList = []
-
-      for (const dayBuy of dayBuys) {
-        dayBuyList.push([dayBuy.stamp, dayBuy.buy_sum, dayBuy.count])
-      }
-
-      const responseDaySell = await axios.post(
-        'https://api.giftistar.com/parse/classes/Analytics',
-        {
-          where: {
-            type: 'daysell'
-          },
-          limit: 7,
-          order: '-stamp',
-          _method: 'GET',
-          _ApplicationId: 'giftistar',
-          _ClientVersion: 'js1.10.0',
-          _InstallationId: 'deb592bb-fb7b-f11c-5cce-b3ab549c6e1e'
-        },
-        {
-          headers: {
-            'content-type': 'application/json'
-          }
-        }
-      )
-      const daySells = responseDaySell.data.results
-
-      let daySellList = []
-
-      for (const daySell of daySells) {
-        daySellList.push([
-          daySell.sales,
-          daySell.count,
-          daySell.rate,
-          daySell.balance
-        ])
-      }
-
-      let dayBuySellList = []
-
-      dayBuySellList.push([
-        dayBuyList[1][0],
-        dayBuyList[1][1],
-        dayBuyList[1][2],
-        daySellList[1][0],
-        daySellList[1][1],
-        daySellList[1][2],
-        daySellList[1][3]
-      ])
+      await getTokenData(tokenData)
 
       let giftistarItems = []
       const response = await axios.post(
@@ -220,22 +151,6 @@ program
         await sleep()
       }
 
-      const sheetBuySell = await sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: 'buySellCount!A1:G999999'
-      })
-      const buySellCount = sheetBuySell.data.values
-      const buySellNextRow = buySellCount.length + 1
-
-      await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: `buySellCount!A${buySellNextRow}:G${buySellNextRow}`,
-        valueInputOption: 'RAW',
-        resource: {
-          values: dayBuySellList
-        }
-      })
-
       await sheets.spreadsheets.values.update({
         spreadsheetId,
         range: 'giftistar!A3:M99999',
@@ -259,9 +174,20 @@ program
           ]
         }
       })
-      console.log('giftistar-updated')
+      console.log('giftistar-updated', moment().format('YYMMDD HH:mm:ss'))
+    } catch (err) {
+      console.log(err)
+    }
+  })
 
-      console.log('ncnc-onUpdate')
+program
+  .command('ncnc')
+  .action(async () => {
+    try {
+      console.log('ncnc-on-update', moment().format('YYMMDD HH:mm:ss'))
+
+      await getTokenData(tokenData)
+
       const base64 = Buffer.from(
         unescape(
           encodeURIComponent(
@@ -359,7 +285,19 @@ program
           values: ncncConItems
         }
       })
-      console.log('ncnc-updated')
+      console.log('ncnc-updated', moment().format('YYMMDD HH:mm:ss'))
+    } catch (err) {
+      console.log(err)
+    }
+  })
+
+program
+  .command('comparison')
+  .action(async () => {
+    try {
+      console.log('comparison-on-update', moment().format('YYMMDD HH:mm:ss'))
+
+      await getTokenData(tokenData)
 
       const sheet1 = await sheets.spreadsheets.values.get({
         spreadsheetId,
@@ -417,19 +355,40 @@ program
           ]
         }
       })
-      console.log('comparison-updated')
+      console.log('comparison-updated', moment().format('YYMMDD HH:mm:ss'))
+    } catch (err) {
+      console.log(err)
+    }
+  })
+
+program
+  .command('gifa-daily')
+  .action(async () => {
+    try {
+      console.log('gifa-daily-on-update', moment().format('YYMMDD HH:mm:ss'))
+
+      await getTokenData(tokenData)
 
       let giftistarDaily = []
+
       const res = await sheets.spreadsheets.values.get({
         spreadsheetId,
         range: 'giftistar!I1:J1'
       })
       const totalAmounts = res.data.values
+
       totalAmounts.map(totalAmount => {
         giftistarDaily[0] = moment().format('YY년 MM월 DD일 HH:mm')
         giftistarDaily[1] = totalAmount[0]
         giftistarDaily[2] = totalAmount[1]
       })
+
+      const sheet1 = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'giftistar!A3:J99999'
+      })
+      const giftiDatas = sheet1.data.values
+      const giftiDatasLength = giftiDatas.length
 
       // YXmMasiZGG = 스타벅스 카페아메리카노
       for (let i = 0; i < giftiDatasLength; i++) {
@@ -474,13 +433,113 @@ program
           values: [giftistarDaily]
         }
       })
-      console.log('gifitstarDaily-updated')
-
-      console.log(moment().format('YYMMDD HH:mm:ss'))
-    } catch (error) {
-      console.log(error)
+      console.log('giftistar-daily-updated', moment().format('YYMMDD HH:mm:ss'))
+    } catch (err) {
+      console.log(err)
     }
   })
+
+program
+  .command('gifa-buy-sell-count')
+  .action(async () => {
+    try {
+      console.log('gifa-buy-sell-count-on-update', moment().format('YYMMDD HH:mm:ss'))
+
+      await getTokenData(tokenData)
+
+      const responseDayBuy = await axios.post(
+        'https://api.giftistar.com/parse/classes/Analytics',
+        {
+          where: {
+            type: 'daybuy'
+          },
+          limit: 7,
+          order: '-stamp',
+          _method: 'GET',
+          _ApplicationId: 'giftistar',
+          _ClientVersion: 'js1.10.0',
+          _InstallationId: 'deb592bb-fb7b-f11c-5cce-b3ab549c6e1e'
+        },
+        {
+          headers: {
+            'content-type': 'application/json'
+          }
+        }
+      )
+      const dayBuys = responseDayBuy.data.results
+
+      let dayBuyList = []
+
+      for (const dayBuy of dayBuys) {
+        dayBuyList.push([dayBuy.stamp, dayBuy.buy_sum, dayBuy.count])
+      }
+
+      const responseDaySell = await axios.post(
+        'https://api.giftistar.com/parse/classes/Analytics',
+        {
+          where: {
+            type: 'daysell'
+          },
+          limit: 7,
+          order: '-stamp',
+          _method: 'GET',
+          _ApplicationId: 'giftistar',
+          _ClientVersion: 'js1.10.0',
+          _InstallationId: 'deb592bb-fb7b-f11c-5cce-b3ab549c6e1e'
+        },
+        {
+          headers: {
+            'content-type': 'application/json'
+          }
+        }
+      )
+      const daySells = responseDaySell.data.results
+
+      let daySellList = []
+
+      for (const daySell of daySells) {
+        daySellList.push([
+          daySell.sales,
+          daySell.count,
+          daySell.rate,
+          daySell.balance
+        ])
+      }
+
+      let dayBuySellList = []
+
+      dayBuySellList.push([
+        dayBuyList[1][0],
+        dayBuyList[1][1],
+        dayBuyList[1][2],
+        daySellList[1][0],
+        daySellList[1][1],
+        daySellList[1][2],
+        daySellList[1][3]
+      ])
+
+      const sheetBuySell = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'buySellCount!A1:G999999'
+      })
+      const buySellCount = sheetBuySell.data.values
+      const buySellNextRow = buySellCount.length + 1
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `buySellCount!A${buySellNextRow}:G${buySellNextRow}`,
+        valueInputOption: 'RAW',
+        resource: {
+          values: dayBuySellList
+        }
+      })
+      console.log('gifa-buy-sell-count-updated', moment().format('YYMMDD HH:mm:ss'))
+
+    } catch (err) {
+      console.log(err)
+    }
+  })
+
 program.parse(process.argv)
 
 function sleep() {
