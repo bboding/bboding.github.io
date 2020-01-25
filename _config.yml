@@ -130,7 +130,7 @@ author:
       url: "https://github.com/bboding"
     - label: "Instagram"
       icon: "fab fa-fw fa-instagram"
-      url: "https://instagram.com/__now_here__"
+      url: "https://instagram.com/_now__here_"
 
 # Site Footer
 footer:
@@ -152,7 +152,7 @@ footer:
       # url:
     - label: "Instagram"
       icon: "fab fa-fw fa-instagram"
-      url: "https://instagram.com/__now_here__"
+      url: "https://instagram.com/_now__here_"
 
 
 # Reading Files
