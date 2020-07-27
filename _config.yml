@@ -16,7 +16,7 @@ minimal_mistakes_skin    : "default" # "air", "aqua", "contrast", "dark", "dirt"
 
 # Site Settings
 locale                   : "en-US"
-title                    : "bboding blog"
+title                    : "bboding's 기술 블로그"
 title_separator          : "-"
 subtitle                 : # site tagline that appears below site title in masthead
 name                     : "bboding"
@@ -111,7 +111,7 @@ author:
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
   bio              : "Vegan, Yogini, Feminist, Programmer"
   location         : "Seoul, South Korea"
-  email            :
+  email            : "dingbboding@gmail.com"
   links:
     - label: "Email"
       icon: "fas fa-fw fa-envelope-square"
