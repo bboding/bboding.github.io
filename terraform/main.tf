@@ -1,6 +1,6 @@
 locals {
   docker_secret = "regcred"
-  app_version   = "1.1.0"
+  app_version   = "1.2.0"
   app_name      = "ncnc-scripts"
 }
 
