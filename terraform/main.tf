@@ -41,7 +41,7 @@ module "gifa" {
 module "gifa_buy_sell_count" {
   source = "./modules/cron-job"
 
-  name     = "gifa"
+  name     = "gifa-buy-sell-count"
   crontime = "3 0 * * *"
   program  = "gifa-buy-sell-count"
 
