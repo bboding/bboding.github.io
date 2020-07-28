@@ -11,3 +11,10 @@ node_modules/
 !.vscode/extensions.json
 
 .DS_Store
+
+dist/
+
+#terraform
+.terraform/
+secret.tf
+secret-files/

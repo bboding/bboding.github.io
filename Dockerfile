@@ -1,15 +1,13 @@
-FROM node:12
+FROM node:current-alpine
 
 ENV TZ=Asia/Seoul
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-WORKDIR /ncnc-ping
-
-ENV API_URL=https://api2.ncnc.app
+WORKDIR /ncnc-scripts
 
 COPY . .
 
-RUN npm install
-RUN npm run build
+RUN yarn
+RUN yarn build
 
-ENTRYPOINT [ "npm", "run", "program" ]
+ENTRYPOINT [ "yarn", "program" ]
