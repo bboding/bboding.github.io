@@ -16,7 +16,7 @@ resource "kubernetes_cron_job" "ncnc_scripts" {
           spec {
             container {
               name  = var.name
-              image = "doublencinc/ncnc-jobs:${var.app_version}"
+              image = "doublencinc/ncnc-scripts:${var.app_version}"
               args = [
                 var.program
               ]
