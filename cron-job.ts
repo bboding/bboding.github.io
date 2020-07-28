@@ -1,5 +1,5 @@
-const { CronJob } = require('cron')
-const { gifa, gifaBuySellCount } = require('./actions/gifa')
+import {CronJob} from 'cron'
+import {gifa, gifaBuySellCount} from './actions/gifa'
 // * * * * * *
 // 초/분/시/날짜/달/요일
 // 0 */30 14-18 * * 1-5

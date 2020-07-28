@@ -1,85 +1,50 @@
-const moment = require('moment')
-const axios = require('axios')
-const fs = require('fs')
-const readline = require('readline')
-const { google } = require('googleapis')
-const util = require('util')
+import axios from 'axios'
+import {config} from 'dotenv'
+import fs from 'fs'
+import {google} from 'googleapis'
+import moment from 'moment'
 
-require('dotenv').config({ path: `${__dirname}/../.env` })
-
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-const TOKEN_PATH = process.env.GOOGLE_TOKEN_PATH
-
-const getData = util.promisify(fs.readFile)
-const writeData = util.promisify(fs.writeFile)
+config({path: `${__dirname}/../.env`})
 
 const spreadsheetId = '17vx2FXgG1Ylzt2SWjuRkIre_4O3dsb49q1SmT408fQo'
 
-let sheets
+async function getSheets() {
+  const [accessFile, refreshFile] = await Promise.all([
+    fs.promises.readFile(process.env.GOOGLE_DRIVE_ACCESS_TOKEN, 'utf-8'),
+    fs.promises.readFile(process.env.GOOGLE_DRIVE_REFRESH_TOKEN, 'utf-8'),
+  ])
+
+  const accessToken = JSON.parse(accessFile)
+  const refreshToken = JSON.parse(refreshFile)
+
+  const {client_id, client_secret, redirect_uris} = accessToken.installed
+
+  const client = new google.auth.OAuth2(client_id, client_secret, redirect_uris)
+
+  client.setCredentials(refreshToken)
+  return google.sheets({version: 'v4', auth: client})
+}
 
 function sleep() {
-  return new Promise(resolve => setTimeout(resolve, Math.random() * (2000 - 1000) + 5000))
+  return new Promise((resolve) =>
+    setTimeout(resolve, Math.random() * (2000 - 1000) + 5000),
+  )
 }
 
 function sleepShort() {
-  return new Promise(resolve => setTimeout(resolve, 100))
+  return new Promise((resolve) => setTimeout(resolve, 100))
 }
 
-function askCode(rl) {
-  return new Promise(resolve => {
-    rl.question('Enter the code from that page here: ', code => {
-      resolve(code)
-    })
-  })
-}
-
-const getTokenData = async () => {
-  const content = await getData(process.env.GOOGLE_CREDENTIAL_PATH)
-  const credentials = JSON.parse(content)
-
-  const { client_secret, client_id, redirect_uris } = credentials.installed
-
-  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
-  let tokenData
-
-  try {
-    tokenData = await getData(TOKEN_PATH)
-  } catch (err) {
-    const authUrl = oAuth2Client.generateAuthUrl({
-      access_type: 'offline',
-      scope: SCOPES,
-    })
-    console.log('Authorizse this app by visiting this url:', authUrl)
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    })
-
-    const code = await askCode(rl)
-    const { tokens } = await oAuth2Client.getToken(code)
-    oAuth2Client.setCredentials(tokens)
-    await writeData(TOKEN_PATH, JSON.stringify(tokens))
-    console.log('Token stored to', TOKEN_PATH)
-    tokenData = await getData(TOKEN_PATH)
-  }
-
-  oAuth2Client.setCredentials(JSON.parse(tokenData))
-
-  sheets = google.sheets({
-    version: 'v4',
-    auth: oAuth2Client,
-  })
-}
-
-const gifa = async () => {
+export const gifa = async () => {
+  const sheets = await getSheets()
   try {
     console.log('gifa-on-update', moment().format('YYMMDD HH:mm:ss'))
 
-    await getTokenData()
+    // await getTokenData()
 
     const giftistarItems = []
 
-    const { results: brands } = (
+    const {results: brands} = (
       await axios.post(
         'https://api.giftistar.com/parse/classes/Brand',
         {
@@ -102,7 +67,7 @@ const gifa = async () => {
     ).data
 
     for (const brand of brands) {
-      const { results: items } = (
+      const {results: items} = (
         await axios.post(
           'https://api.giftistar.com/parse/classes/Menu',
           {
@@ -161,7 +126,7 @@ const gifa = async () => {
       spreadsheetId,
       range: 'giftistar!A3:M99999',
       valueInputOption: 'RAW',
-      resource: {
+      requestBody: {
         values: giftistarItems,
       },
     })
@@ -170,8 +135,14 @@ const gifa = async () => {
       spreadsheetId,
       range: 'giftistar!A1',
       valueInputOption: 'RAW',
-      resource: {
-        values: [[`기프티스타 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]],
+      requestBody: {
+        values: [
+          [
+            `기프티스타 (시트 업데이트 ${moment().format(
+              'YY년 MM월 DD일 HH:mm',
+            )})`,
+          ],
+        ],
       },
     })
     console.log('giftistar-updated', moment().format('YYMMDD HH:mm:ss'))
@@ -179,7 +150,11 @@ const gifa = async () => {
     console.log('ncnc-on-update', moment().format('YYMMDD HH:mm:ss'))
 
     const base64 = Buffer.from(
-      unescape(encodeURIComponent(`${process.env.API_USERNAME}:${process.env.API_PASSWORD}`)),
+      unescape(
+        encodeURIComponent(
+          `${process.env.API_USERNAME}:${process.env.API_PASSWORD}`,
+        ),
+      ),
     ).toString('base64')
     const result = await axios.request({
       method: 'post',
@@ -190,7 +165,7 @@ const gifa = async () => {
       },
     })
 
-    const { token } = result.data.adminSession
+    const {token} = result.data.adminSession
 
     const axiosOptions = {
       headers: {
@@ -204,8 +179,11 @@ const gifa = async () => {
     })
     console.log('cleared')
 
-    const responseConItem = await axios.get(`${process.env.API_URL}/con-items`, axiosOptions)
-    const { conItems } = responseConItem.data
+    const responseConItem = await axios.get(
+      `${process.env.API_URL}/con-items`,
+      axiosOptions,
+    )
+    const {conItems} = responseConItem.data
     const ncncConItems = []
 
     for (let i = 1; i <= conItems[conItems.length - 1].id; i++) {
@@ -230,8 +208,14 @@ const gifa = async () => {
       spreadsheetId,
       range: 'ncnc!A1',
       valueInputOption: 'RAW',
-      resource: {
-        values: [[`니콘내콘 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]],
+      requestBody: {
+        values: [
+          [
+            `니콘내콘 (시트 업데이트 ${moment().format(
+              'YY년 MM월 DD일 HH:mm',
+            )})`,
+          ],
+        ],
       },
     })
 
@@ -239,8 +223,18 @@ const gifa = async () => {
       spreadsheetId,
       range: 'ncnc!A2:G2',
       valueInputOption: 'RAW',
-      resource: {
-        values: [['상품Id', '브랜드', '상품명', '원가', '제시가', '앱판매가', '스팜판매가']],
+      requestBody: {
+        values: [
+          [
+            '상품Id',
+            '브랜드',
+            '상품명',
+            '원가',
+            '제시가',
+            '앱판매가',
+            '스팜판매가',
+          ],
+        ],
       },
     })
 
@@ -248,7 +242,7 @@ const gifa = async () => {
       spreadsheetId,
       range: 'ncnc!A1:H99999',
       valueInputOption: 'RAW',
-      resource: {
+      requestBody: {
         values: ncncConItems,
       },
     })
@@ -293,7 +287,7 @@ const gifa = async () => {
       spreadsheetId,
       range: 'comparison!A3:I99999',
       valueInputOption: 'RAW',
-      resource: {
+      requestBody: {
         values: list,
       },
     })
@@ -302,8 +296,14 @@ const gifa = async () => {
       spreadsheetId,
       range: 'comparison!A1',
       valueInputOption: 'RAW',
-      resource: {
-        values: [[`가격 비교 (시트 업데이트 ${moment().format('YY년 MM월 DD일 HH:mm')})`]],
+      requestBody: {
+        values: [
+          [
+            `가격 비교 (시트 업데이트 ${moment().format(
+              'YY년 MM월 DD일 HH:mm',
+            )})`,
+          ],
+        ],
       },
     })
     console.log('comparison-updated', moment().format('YYMMDD HH:mm:ss'))
@@ -318,7 +318,7 @@ const gifa = async () => {
     })
     const totalAmounts = res.data.values
 
-    totalAmounts.map(totalAmount => {
+    totalAmounts.map((totalAmount) => {
       giftistarDaily[0] = moment().format('YY년 MM월 DD일 HH:mm')
       giftistarDaily[1] = totalAmount[0]
       giftistarDaily[2] = totalAmount[1]
@@ -363,7 +363,7 @@ const gifa = async () => {
       spreadsheetId,
       range: `giftistarDaily!A${nextRow}:M${nextRow}`,
       valueInputOption: 'RAW',
-      resource: {
+      requestBody: {
         values: [giftistarDaily],
       },
     })
@@ -373,11 +373,14 @@ const gifa = async () => {
   }
 }
 
-async function gifaBuySellCount() {
+export async function gifaBuySellCount() {
   try {
-    console.log('gifa-buy-sell-count-on-update', moment().format('YYMMDD HH:mm:ss'))
+    console.log(
+      'gifa-buy-sell-count-on-update',
+      moment().format('YYMMDD HH:mm:ss'),
+    )
 
-    await getTokenData()
+    const sheets = await getSheets()
 
     const responseDayBuy = await axios.post(
       'https://api.giftistar.com/parse/classes/Analytics',
@@ -430,7 +433,12 @@ async function gifaBuySellCount() {
     const daySellList = []
 
     for (const daySell of daySells) {
-      daySellList.push([daySell.sales, daySell.count, daySell.rate, daySell.balance])
+      daySellList.push([
+        daySell.sales,
+        daySell.count,
+        daySell.rate,
+        daySell.balance,
+      ])
     }
 
     const dayBuySellList = []
@@ -456,17 +464,15 @@ async function gifaBuySellCount() {
       spreadsheetId,
       range: `buySellCount!A${buySellNextRow}:G${buySellNextRow}`,
       valueInputOption: 'RAW',
-      resource: {
+      requestBody: {
         values: dayBuySellList,
       },
     })
-    console.log('gifa-buy-sell-count-updated', moment().format('YYMMDD HH:mm:ss'))
+    console.log(
+      'gifa-buy-sell-count-updated',
+      moment().format('YYMMDD HH:mm:ss'),
+    )
   } catch (err) {
     console.log(err)
   }
-}
-
-module.exports = {
-  gifa,
-  gifaBuySellCount,
 }

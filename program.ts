@@ -1,9 +1,7 @@
-const program = require('commander')
-const { gifa, gifaBuySellCount } = require('./actions/gifa.js')
+import program from 'commander'
+import {gifa, gifaBuySellCount} from './actions/gifa'
 
-const { version } = require('./package.json')
-
-program.version(version)
+program.version('1.0')
 
 program.command('gifa').action(async () => {
   await gifa()
@@ -14,4 +12,5 @@ program.command('gifa-buy-sell-count').action(async () => {
   await gifaBuySellCount()
   process.exit()
 })
+
 program.parse(process.argv)
