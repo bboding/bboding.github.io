@@ -1,6 +1,5 @@
 locals {
   docker_secret = "regcred"
-  app_version   = "1.2.0"
   app_name      = "ncnc-scripts"
 }
 
@@ -20,9 +19,10 @@ resource "kubernetes_config_map" "ncnc_scripts" {
 
   data = {
     API_URL                    = "https://api2.ncnc.app/cms"
-    API_USERNAME               = "demoaccount"
+    API_USERNAME               = "monstercrab"
     GOOGLE_DRIVE_ACCESS_TOKEN  = "/key/google-drive-access-token.json"
     GOOGLE_DRIVE_REFRESH_TOKEN = "/key/google-drive-refresh-token.json"
+    RDS_USER                   = "ncncapi"
   }
 }
 
@@ -35,7 +35,7 @@ module "gifa" {
   crontime = "44 23 * * *"
   program  = "gifa"
 
-  app_version = local.app_version
+  app_version = var.app_version
 }
 
 module "gifa_buy_sell_count" {
@@ -45,5 +45,5 @@ module "gifa_buy_sell_count" {
   crontime = "3 0 * * *"
   program  = "gifa-buy-sell-count"
 
-  app_version = local.app_version
+  app_version = var.app_version
 }

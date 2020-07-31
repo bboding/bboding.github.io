@@ -18,3 +18,4 @@ dist/
 .terraform/
 secret.tf
 secret-files/
+secret.yml
