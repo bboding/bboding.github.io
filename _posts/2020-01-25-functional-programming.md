@@ -1,5 +1,4 @@
 ---
-layout: post
 title: '자바스크립트로 알아보는 함수형 프로그래밍'
 date: '2020-01-25'
 categories: [Javascript]
