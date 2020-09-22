@@ -10,12 +10,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@doublenc-inc/ncnc-models": "^1.24.0",
+    "@slack/web-api": "^5.12.0",
     "axios": "^0.18.0",
+    "cheerio": "^1.0.0-rc.3",
     "commander": "^2.17.1",
     "cron": "^1.7.2",
     "dotenv": "^6.1.0",
     "googleapis": "^56.0.0",
-    "moment": "^2.22.2"
+    "moment": "^2.22.2",
+    "mysql2": "^2.2.5"
   },
   "repository": {
     "type": "git",

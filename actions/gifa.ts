@@ -3,27 +3,11 @@ import {config} from 'dotenv'
 import fs from 'fs'
 import {google} from 'googleapis'
 import moment from 'moment'
+import {getSheets} from '../utils'
 
 config({path: `${__dirname}/../.env`})
 
-const spreadsheetId = '17vx2FXgG1Ylzt2SWjuRkIre_4O3dsb49q1SmT408fQo'
-
-async function getSheets() {
-  const [accessFile, refreshFile] = await Promise.all([
-    fs.promises.readFile(process.env.GOOGLE_DRIVE_ACCESS_TOKEN, 'utf-8'),
-    fs.promises.readFile(process.env.GOOGLE_DRIVE_REFRESH_TOKEN, 'utf-8'),
-  ])
-
-  const accessToken = JSON.parse(accessFile)
-  const refreshToken = JSON.parse(refreshFile)
-
-  const {client_id, client_secret, redirect_uris} = accessToken.installed
-
-  const client = new google.auth.OAuth2(client_id, client_secret, redirect_uris)
-
-  client.setCredentials(refreshToken)
-  return google.sheets({version: 'v4', auth: client})
-}
+const spreadsheetId = process.env.BUY_SELL_COUNT_SPREADSHEET_ID
 
 function sleep() {
   return new Promise((resolve) =>
@@ -39,8 +23,6 @@ export const gifa = async () => {
   const sheets = await getSheets()
   try {
     console.log('gifa-on-update', moment().format('YYMMDD HH:mm:ss'))
-
-    // await getTokenData()
 
     const giftistarItems = []
 
