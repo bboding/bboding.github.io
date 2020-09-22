@@ -37,8 +37,7 @@ export async function writeGoogleSheetForRow(
     range: `${sheetName}!${start}:${end}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      // values: [[a],[b],[c]] this is for column update
-      values: list, // for row update
+      values: list,
     },
   })
 }

@@ -52,7 +52,6 @@ async function getGftNaverSellPrice(productName) {
 
 async function getNaverRanking(keyword) {
   try {
-    // 네이버 쇼핑 오픈 api
     const search = await axios.get(
       `https://openapi.naver.com/v1/search/shop.json?display=50&query=${encodeURI(
         keyword,
