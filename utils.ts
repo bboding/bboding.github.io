@@ -26,7 +26,7 @@ export async function getSheets() {
 export async function writeGoogleSheetForRow(
   spreadsheetId,
   sheetName,
-  list,
+  values,
   start,
   end,
 ) {
@@ -37,7 +37,7 @@ export async function writeGoogleSheetForRow(
     range: `${sheetName}!${start}:${end}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: list,
+      values,
     },
   })
 }
@@ -45,7 +45,7 @@ export async function writeGoogleSheetForRow(
 export async function writeGoogleSheetForColumn(
   spreadsheetId,
   sheetName,
-  list,
+  values,
   start,
   end,
 ) {
@@ -53,11 +53,30 @@ export async function writeGoogleSheetForColumn(
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `'${sheetName}'!${start}:${end}`,
+    range: `${sheetName}!${start}:${end}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       majorDimension: 'COLUMNS',
-      values: list,
+      values,
+    },
+  })
+}
+
+export async function appendGoogleSheet(
+  spreadsheetId,
+  sheetName,
+  values,
+  start,
+  end,
+) {
+  const sheets: any = await getSheets()
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId,
+    range: `${sheetName}!${start}:${end}`,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values,
     },
   })
 }
