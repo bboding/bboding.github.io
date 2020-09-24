@@ -12,7 +12,7 @@ const spreadsheetId = process.env.SPREADSHEET_ID
 
 function getConLogCodeId(conLogCodes, key) {
   return conLogCodes
-    .map((conLogCode) => {
+    .filter((conLogCode) => {
       return conLogCode.key === key
     })
     .map((conLogCode) => {

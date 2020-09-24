@@ -161,7 +161,7 @@ async function updateNaverRanking(parameters) {
   }
 }
 
-export async function getNcncCount(param, conItemIds) {
+async function getNcncCount(param, conItemIds) {
   try {
     const conLogCodes = await db.ConLogCode.findAll({
       attributes: ['id', 'key'],

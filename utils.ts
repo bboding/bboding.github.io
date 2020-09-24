@@ -23,6 +23,16 @@ export async function getSheets() {
   return google.sheets({version: 'v4', auth: client})
 }
 
+export async function batchGetGoogleSheet(spreadsheetId, ranges) {
+  const sheets = await getSheets()
+
+  return await sheets.spreadsheets.values.batchGet({
+    spreadsheetId,
+    ranges,
+    valueRenderOption: 'UNFORMATTED_VALUE',
+  })
+}
+
 export async function writeGoogleSheetForRow(
   spreadsheetId,
   sheetName,

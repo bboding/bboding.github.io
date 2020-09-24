@@ -3,6 +3,7 @@ import {gifa, gifaBuySellCount} from './actions/gifa'
 import {dailyMonitoring} from './actions/daily-monitoring'
 import {recordGftCumulativeSales} from './actions/record-gft-cumulative-sales'
 import {getNcncProduct} from './actions/get-ncnc-product'
+import {ncncProductAnalysis} from './actions/ncnc-product-analysis'
 
 program.version('1.0')
 
@@ -39,6 +40,16 @@ program
   .description(`'니콘내콘 상품 분석' 시트를 업데이트합니다`)
   .action(async () => {
     await getNcncProduct()
+    process.exit()
+  })
+
+program
+  .command('ncnc-product-analysis')
+  .description(
+    '각 순위차트에서 기프티를 기준으로 니콘내콘 상품의 순위를 업데이트합니다.',
+  )
+  .action(async () => {
+    await ncncProductAnalysis()
     process.exit()
   })
 program.parse(process.argv)
