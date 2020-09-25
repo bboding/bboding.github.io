@@ -1,5 +1,9 @@
 import moment from 'moment'
-import {readGoogleSheet, writeGoogleSheetForRow} from '../utils'
+import {
+  batchGetGoogleSheet,
+  readGoogleSheet,
+  writeGoogleSheetForRow,
+} from '../utils'
 
 const spreadsheetId = process.env.SPREADSHEET_ID
 const dailySpreadsheetId = process.env.DAILY_SPREADSHEET_ID
@@ -63,12 +67,15 @@ async function updateGftUnderFifty() {
 }
 
 async function updateNcncMatchedUnderFifty() {
-  const matchedNames: any = await readGoogleSheet(
-    spreadsheetId,
-    '상품명 비교',
-    'E2',
-    'F',
-  )
+  const matchedNames: any = (
+    await batchGetGoogleSheet(spreadsheetId, [
+      `기프티 상품 분석!A2:A`,
+      `기프티 상품 분석!S2:S`,
+    ])
+  ).data.valueRanges
+
+  const gftNames = matchedNames[0].values
+  const matchedNcncNames = matchedNames[1].values
 
   const underFiftyItems: any = await readGoogleSheet(
     spreadsheetId,
@@ -97,9 +104,9 @@ async function updateNcncMatchedUnderFifty() {
     const gftName = item[0]
     let isMatched = 0
 
-    for (const matchedName of matchedNames) {
-      const gft = matchedName[0]
-      const ncnc = matchedName[1]
+    for (let i = 0; i < gftNames.length; i++) {
+      const gft = gftNames[i][0]
+      const ncnc = matchedNcncNames[i][0]
 
       if (gftName === gft) {
         values.push([ncnc])

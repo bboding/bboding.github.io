@@ -4,6 +4,7 @@ import {
   clearGoogleSheet,
   readGoogleSheet,
   writeGoogleSheetForRow,
+  batchGetGoogleSheet,
 } from '../utils'
 
 const spreadsheetId = process.env.SPREADSHEET_ID
@@ -117,12 +118,15 @@ async function updateEachSheet(sheetName, ncncDatas, titles) {
     sheet.unshift(sheet[0] > 0 ? index + 1 : '-')
   }
 
-  const matchedNames: any = await readGoogleSheet(
-    spreadsheetId,
-    '상품명 비교',
-    'E2',
-    'F',
-  )
+  const matchedNames: any = (
+    await batchGetGoogleSheet(spreadsheetId, [
+      `기프티 상품 분석!A2:A`,
+      `기프티 상품 분석!S2:S`,
+    ])
+  ).data.valueRanges
+
+  const gftNames = matchedNames[0].values
+  const matchedNcncNames = matchedNames[1].values
 
   const gftRank100Names: any = await readGoogleSheet(
     spreadsheetId,
@@ -137,9 +141,9 @@ async function updateEachSheet(sheetName, ncncDatas, titles) {
     gftName = gftName[0]
     let isExist = 0
 
-    for (const matchedName of matchedNames) {
-      const gft = matchedName[0]
-      const ncnc = matchedName[1]
+    for (let i = 0; i < gftNames.length; i++) {
+      const gft = gftNames[i][0]
+      const ncnc = matchedNcncNames[i][0]
 
       if (gftName === gft) {
         for (const sheet of ncncSheets) {
