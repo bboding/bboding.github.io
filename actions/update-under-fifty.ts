@@ -6,7 +6,6 @@ import {
 } from '../utils'
 
 const spreadsheetId = process.env.SPREADSHEET_ID
-const dailySpreadsheetId = process.env.DAILY_SPREADSHEET_ID
 
 async function updateGftUnderFifty() {
   const gftSheets: any = await readGoogleSheet(

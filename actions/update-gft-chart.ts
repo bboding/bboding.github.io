@@ -1,11 +1,5 @@
 import moment from 'moment'
-import {title} from 'process'
-import {
-  getSheets,
-  readGoogleSheet,
-  sleep,
-  writeGoogleSheetForRow,
-} from '../utils'
+import {readGoogleSheet, writeGoogleSheetForRow} from '../utils'
 
 const spreadsheetId = process.env.SPREADSHEET_ID
 
