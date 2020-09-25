@@ -6,6 +6,7 @@ import {getNcncProduct} from './actions/get-ncnc-product'
 import {updateNcncProduct} from './actions/update-ncnc-product'
 import {getGftProduct} from './actions/get-gft-product'
 import {updateGftProduct} from './actions/update-gft-product'
+import {updateUnderFifty} from './actions/update-under-fifty'
 
 program.version('1.0')
 
@@ -68,6 +69,14 @@ program
   .description('기프티 각 순위 차트를 작성합니다.')
   .action(async () => {
     await updateGftProduct()
+    process.exit()
+  })
+
+program
+  .command('update-under-fifty')
+  .description('기프티스타 목표구매량 50개 이하 상품을 업데이트합니다.')
+  .action(async () => {
+    await updateUnderFifty()
     process.exit()
   })
 program.parse(process.argv)

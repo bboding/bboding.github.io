@@ -4,8 +4,13 @@ import {readGoogleSheet, writeGoogleSheetForRow} from '../utils'
 const spreadsheetId = process.env.SPREADSHEET_ID
 const dailySpreadsheetId = process.env.DAILY_SPREADSHEET_ID
 
-async function updateGftUnderFifty(gftDatas) {
-  const gftSheets = gftDatas
+async function updateGftUnderFifty() {
+  const gftSheets: any = await readGoogleSheet(
+    spreadsheetId,
+    '기프티 상품 분석',
+    'A2',
+    'M',
+  )
 
   const [titles]: any = await readGoogleSheet(
     spreadsheetId,
@@ -58,20 +63,89 @@ async function updateGftUnderFifty(gftDatas) {
 }
 
 async function updateMatchedNcnc() {
-  //
+  const matchedNames: any = await readGoogleSheet(
+    spreadsheetId,
+    '상품명 비교',
+    'E2',
+    'F',
+  )
+
+  const underFiftyItems: any = await readGoogleSheet(
+    spreadsheetId,
+    '기프티 목표구매량 50개이하',
+    'A2',
+    'A',
+  )
+
+  const ncncSheets: any = await readGoogleSheet(
+    spreadsheetId,
+    '니콘내콘 상품 분석',
+    'A2',
+    'N',
+  )
+
+  const [titles]: any = await readGoogleSheet(
+    spreadsheetId,
+    '니콘내콘 상품 분석',
+    'A1',
+    'N1',
+  )
+
+  const values = []
+
+  for (const item of underFiftyItems) {
+    const gftName = item[0]
+    let isMatched = 0
+
+    for (const matchedName of matchedNames) {
+      const gft = matchedName[0]
+      const ncnc = matchedName[1]
+
+      if (gftName === gft) {
+        values.push([ncnc])
+        isMatched = 1
+        break
+      }
+    }
+    if (!isMatched) values.push(['일치하는 상품 없음'])
+  }
+
+  for (const value of values) {
+    for (const sheet of ncncSheets) {
+      if (value[0] === sheet[1]) {
+        value.push(
+          sheet[titles.indexOf('니콘내콘 매입개수')],
+          sheet[titles.indexOf('재고')],
+          sheet[titles.indexOf('앱 판매가')],
+          sheet[titles.indexOf('스토어 판매가')],
+          sheet[titles.indexOf('제시가')],
+          sheet[titles.indexOf('앱 판매개수')],
+          sheet[titles.indexOf('네이버스토어 판매개수')],
+        )
+        break
+      }
+    }
+  }
+
+  await writeGoogleSheetForRow(
+    spreadsheetId,
+    '기프티 목표구매량 50개이하',
+    values,
+    'G2',
+    'N',
+  )
 }
 
 export async function updateUnderFifty() {
-  console.log('목표구매량 50개 이하 시트 작성하기')
-
-  const gftDatas: any = await readGoogleSheet(
-    spreadsheetId,
-    '기프티 상품 분석',
-    'A2',
-    'M',
+  console.log(
+    '기프티 목표구매량 50개 이하 시트 작성하기:',
+    moment().format('dddd hh:mm:ss'),
   )
+  await updateGftUnderFifty()
 
-  await updateGftUnderFifty(gftDatas)
-
+  console.log(
+    '기프티 목표구매량 50개 이하 시트에 니콘내콘 매칭하기:',
+    moment().format('dddd hh:mm:ss'),
+  )
   await updateMatchedNcnc()
 }
