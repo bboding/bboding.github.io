@@ -5,6 +5,7 @@ import {recordGftCumulativeSales} from './actions/record-gft-cumulative-sales'
 import {getNcncProduct} from './actions/get-ncnc-product'
 import {updateNcncProduct} from './actions/update-ncnc-product'
 import {getGftProduct} from './actions/get-gft-product'
+import {updateGftProduct} from './actions/update-gft-product'
 
 program.version('1.0')
 
@@ -20,9 +21,7 @@ program.command('gifa-buy-sell-count').action(async () => {
 
 program
   .command('record-gft-cumulative-sales')
-  .description(
-    '기프티스타 실시간으로 판매량, 매입량 알기위해 0시에 기프티스타 누적판매량, 누적매입량을 기록합니다.',
-  )
+  .description('기프티스타 누적판매량, 누적매입량을 기록합니다.')
   .action(async () => {
     await recordGftCumulativeSales()
     process.exit()
@@ -39,7 +38,7 @@ program
 program
   .command('get-ncnc-product')
   .description(
-    `니콘내콘 모든 상품 조회하고 기록합니다. ('니콘내콘 상품 분석' 시트 업데이트)`,
+    `니콘내콘 모든 상품을 조회하고 기록합니다. ('니콘내콘 상품 분석' 시트 업데이트)`,
   )
   .action(async () => {
     await getNcncProduct()
@@ -48,9 +47,7 @@ program
 
 program
   .command('update-ncnc-product')
-  .description(
-    '각 순위차트에서 기프티를 기준으로 니콘내콘 상품의 순위를 업데이트합니다.',
-  )
+  .description('니콘내콘 각 순위 차트를 작성합니다.')
   .action(async () => {
     await updateNcncProduct()
     process.exit()
@@ -63,6 +60,14 @@ program
   )
   .action(async () => {
     await getGftProduct()
+    process.exit()
+  })
+
+program
+  .command('update-gft-product')
+  .description('기프티 각 순위 차트를 작성합니다.')
+  .action(async () => {
+    await updateGftProduct()
     process.exit()
   })
 program.parse(process.argv)
