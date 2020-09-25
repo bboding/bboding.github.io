@@ -1,9 +1,9 @@
 import program from 'commander'
 import {gifa, gifaBuySellCount} from './actions/gifa'
-import {dailyMonitoring} from './actions/daily-monitoring'
+import {dailyMonitoring} from './actions/update-daily-monitoring'
 import {recordGftCumulativeSales} from './actions/record-gft-cumulative-sales'
 import {getNcncProduct} from './actions/get-ncnc-product'
-import {ncncProductAnalysis} from './actions/ncnc-product-analysis'
+import {updateNcncProduct} from './actions/update-ncnc-product'
 import {getGftProduct} from './actions/get-gft-product'
 
 program.version('1.0')
@@ -47,12 +47,12 @@ program
   })
 
 program
-  .command('ncnc-product-analysis')
+  .command('update-ncnc-product')
   .description(
     '각 순위차트에서 기프티를 기준으로 니콘내콘 상품의 순위를 업데이트합니다.',
   )
   .action(async () => {
-    await ncncProductAnalysis()
+    await updateNcncProduct()
     process.exit()
   })
 

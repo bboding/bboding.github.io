@@ -1,7 +1,7 @@
 import moment from 'moment'
 import {config} from 'dotenv'
 import {readGoogleSheet, writeGoogleSheetForColumn} from '../utils'
-import {getGftItem} from './daily-monitoring'
+import {getGftItem} from './update-daily-monitoring'
 
 config({path: `${__dirname}/../.env`})
 

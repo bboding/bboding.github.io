@@ -24,7 +24,7 @@ const relatedConItemIdsArray = [
 
 const sheetNames = ['매출액', '이익액', '판매개수', '매입액', '매입개수']
 
-export async function ncncProductAnalysis() {
+export async function updateNcncProduct() {
   console.log('각 기준 순위차트 작성하기:', moment().format('dddd hh:mm:ss'))
 
   const mergeAppAndNaver = (sheets, appIndex, naverIndex) => {
