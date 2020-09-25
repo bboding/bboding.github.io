@@ -1,11 +1,11 @@
 import program from 'commander'
 import {gifa, gifaBuySellCount} from './actions/gifa'
 import {dailyMonitoring} from './actions/update-daily-monitoring'
-import {recordGftCumulativeSales} from './actions/record-gft-cumulative-sales'
+import {getGftCumulativeSales} from './actions/get-gft-cumulative-sales'
 import {getNcncProduct} from './actions/get-ncnc-product'
-import {updateNcncProduct} from './actions/update-ncnc-product'
+import {updateNcncChart} from './actions/update-ncnc-chart'
 import {getGftProduct} from './actions/get-gft-product'
-import {updateGftProduct} from './actions/update-gft-product'
+import {updateGftChart} from './actions/update-gft-chart'
 import {updateUnderFifty} from './actions/update-under-fifty'
 
 program.version('1.0')
@@ -21,10 +21,10 @@ program.command('gifa-buy-sell-count').action(async () => {
 })
 
 program
-  .command('record-gft-cumulative-sales')
-  .description('기프티스타 누적판매량, 누적매입량을 기록합니다.')
+  .command('get-gft-cumulative-sales')
+  .description('기프티스타 누적판매량, 누적매입량을 가져옵니다.')
   .action(async () => {
-    await recordGftCumulativeSales()
+    await getGftCumulativeSales()
     process.exit()
   })
 
@@ -47,10 +47,10 @@ program
   })
 
 program
-  .command('update-ncnc-product')
+  .command('update-ncnc-chart')
   .description('니콘내콘 각 순위 차트를 작성합니다.')
   .action(async () => {
-    await updateNcncProduct()
+    await updateNcncChart()
     process.exit()
   })
 
@@ -65,10 +65,10 @@ program
   })
 
 program
-  .command('update-gft-product')
+  .command('update-gft-chart')
   .description('기프티 각 순위 차트를 작성합니다.')
   .action(async () => {
-    await updateGftProduct()
+    await updateGftChart()
     process.exit()
   })
 

@@ -7,7 +7,7 @@ config({path: `${__dirname}/../.env`})
 
 const spreadsheetId = process.env.SPREADSHEET_ID
 
-export async function recordGftCumulativeSales() {
+export async function getGftCumulativeSales() {
   const gftIds = (
     await readGoogleSheet(spreadsheetId, '어제의 기프티', 'b2', 'q2')
   )[0]
