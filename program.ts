@@ -4,6 +4,7 @@ import {dailyMonitoring} from './actions/daily-monitoring'
 import {recordGftCumulativeSales} from './actions/record-gft-cumulative-sales'
 import {getNcncProduct} from './actions/get-ncnc-product'
 import {ncncProductAnalysis} from './actions/ncnc-product-analysis'
+import {getGftProduct} from './actions/get-gft-product'
 
 program.version('1.0')
 
@@ -37,7 +38,9 @@ program
 
 program
   .command('get-ncnc-product')
-  .description(`'니콘내콘 상품 분석' 시트를 업데이트합니다`)
+  .description(
+    `니콘내콘 모든 상품 조회하고 기록합니다. ('니콘내콘 상품 분석' 시트 업데이트)`,
+  )
   .action(async () => {
     await getNcncProduct()
     process.exit()
@@ -50,6 +53,16 @@ program
   )
   .action(async () => {
     await ncncProductAnalysis()
+    process.exit()
+  })
+
+program
+  .command('get-gft-product')
+  .description(
+    `기프티스타 모든 상품을 조회하고 기록합니다. ('기프티 상품 분석' 시트 업데이트)`,
+  )
+  .action(async () => {
+    await getGftProduct()
     process.exit()
   })
 program.parse(process.argv)
