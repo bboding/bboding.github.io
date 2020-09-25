@@ -78,7 +78,7 @@ async function updateEachSheet(sheetName, gftDatas, titles) {
 }
 
 export async function updateGftChart() {
-  console.log('기프티 각 순위 차트 작성하기:', moment().format('dddd hh:mm:ss'))
+  console.log('update-gft-chart', moment().format('dddd HH:mm:ss'))
 
   const gftDatas: any = await readGoogleSheet(
     spreadsheetId,

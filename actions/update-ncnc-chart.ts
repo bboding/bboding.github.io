@@ -203,10 +203,7 @@ async function updateEachSheet(sheetName, ncncDatas, titles) {
 }
 
 export async function updateNcncChart() {
-  console.log(
-    '니콘내콘 각 순위 차트 작성하기:',
-    moment().format('dddd hh:mm:ss'),
-  )
+  console.log('update-ncnc-chart', moment().format('dddd HH:mm:ss'))
 
   const ncncDatas: any = await readGoogleSheet(
     spreadsheetId,

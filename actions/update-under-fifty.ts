@@ -62,7 +62,7 @@ async function updateGftUnderFifty() {
   )
 }
 
-async function updateMatchedNcnc() {
+async function updateNcncMatchedUnderFifty() {
   const matchedNames: any = await readGoogleSheet(
     spreadsheetId,
     '상품명 비교',
@@ -137,15 +137,12 @@ async function updateMatchedNcnc() {
 }
 
 export async function updateUnderFifty() {
-  console.log(
-    '기프티 목표구매량 50개 이하 시트 작성하기:',
-    moment().format('dddd hh:mm:ss'),
-  )
+  console.log('update-under-fifty', moment().format('dddd HH:mm:ss'))
   await updateGftUnderFifty()
 
   console.log(
-    '기프티 목표구매량 50개 이하 시트에 니콘내콘 매칭하기:',
-    moment().format('dddd hh:mm:ss'),
+    'update-ncnc-matched-under-fifty',
+    moment().format('dddd HH:mm:ss'),
   )
-  await updateMatchedNcnc()
+  await updateNcncMatchedUnderFifty()
 }

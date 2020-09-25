@@ -12,10 +12,6 @@ const dailySpreadsheetId = process.env.DAILY_SPREADSHEET_ID
 const buySellSpreadsheetId = process.env.BUY_SELL_COUNT_SPREADSHEET_ID
 
 async function getAllGftProduct() {
-  console.log(
-    '기프티스타 모든 상품 가져오기:',
-    moment().format('dddd HH:mm:ss'),
-  )
   const values = []
 
   const {data} = await axios.post(
@@ -138,9 +134,9 @@ async function getGftBuySell() {
 }
 
 export async function getGftProduct() {
-  // 기프티스타 모든 상품 조회한 후 기록한다.
+  console.log('get-all-gft-product', moment().format('dddd HH:mm:ss'))
   await getAllGftProduct()
 
-  // 기프티 매출, 매입, 이익 등을 가져온다.
+  console.log('get-gft-buy-sell', moment().format('dddd HH:mm:ss'))
   await getGftBuySell()
 }

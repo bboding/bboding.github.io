@@ -1,12 +1,13 @@
 import program from 'commander'
 import {gifa, gifaBuySellCount} from './actions/gifa'
-import {dailyMonitoring} from './actions/update-daily-monitoring'
+import {updateDailyMonitoring} from './actions/update-daily-monitoring'
 import {getGftCumulativeSales} from './actions/get-gft-cumulative-sales'
 import {getNcncProduct} from './actions/get-ncnc-product'
 import {updateNcncChart} from './actions/update-ncnc-chart'
 import {getGftProduct} from './actions/get-gft-product'
 import {updateGftChart} from './actions/update-gft-chart'
 import {updateUnderFifty} from './actions/update-under-fifty'
+import {updateMatchedProduct} from './actions/update-matched-product'
 
 program.version('1.0')
 
@@ -29,10 +30,10 @@ program
   })
 
 program
-  .command('daily-monitoring')
+  .command('update-daily-monitoring')
   .description('전략 상품 모니터링 시트를 작성합니다.')
   .action(async () => {
-    await dailyMonitoring()
+    await updateDailyMonitoring()
     process.exit()
   })
 
@@ -77,6 +78,16 @@ program
   .description('기프티스타 목표구매량 50개 이하 상품을 업데이트합니다.')
   .action(async () => {
     await updateUnderFifty()
+    process.exit()
+  })
+
+program
+  .command('update-matched-product')
+  .description(
+    '기프티와 니콘내콘 상품명을 매칭하고 새로운 데이터가 있으면 추가합니다',
+  )
+  .action(async () => {
+    await updateMatchedProduct()
     process.exit()
   })
 program.parse(process.argv)

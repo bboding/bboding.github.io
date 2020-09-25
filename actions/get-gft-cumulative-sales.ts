@@ -8,6 +8,7 @@ config({path: `${__dirname}/../.env`})
 const spreadsheetId = process.env.SPREADSHEET_ID
 
 export async function getGftCumulativeSales() {
+  console.log('get-gft-cumulative-sales', moment().format('dddd HH:mm:ss'))
   const gftIds = (
     await readGoogleSheet(spreadsheetId, '어제의 기프티', 'b2', 'q2')
   )[0]
