@@ -39,8 +39,8 @@ async function getGftNaverSellPrice(productName) {
     const products: any = await readGoogleSheet(
       spreadsheetId,
       '상품명 비교',
-      'a2',
-      'b',
+      'A2',
+      'B',
     )
 
     for (const product of products) {

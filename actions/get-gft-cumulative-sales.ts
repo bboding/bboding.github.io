@@ -11,7 +11,7 @@ export async function getGftCumulativeSales() {
   console.log('get-gft-cumulative-sales', moment().format('dddd HH:mm:ss'))
 
   const gftIds = (
-    await readGoogleSheet(spreadsheetId, '어제의 기프티', 'b2', 'q2')
+    await readGoogleSheet(spreadsheetId, '어제의 기프티', 'B2', 'Q2')
   )[0]
   const record = []
   const cgvId = 'D0qFbBb620'

@@ -53,11 +53,6 @@ const jobs = [
     action: updateDailyMonitoring,
   },
   {
-    name: '전략상품 모니터링 시트 작성하기',
-    cronTime: '0 57 23 * * *',
-    action: updateDailyMonitoring,
-  },
-  {
     name: '새로 추가된 상품명 매칭하여 저장하기',
     cronTime: '0 0 7 * * *',
     action: updateMatchedProduct,
@@ -75,7 +70,7 @@ const jobs = [
   },
   {
     name: '기프티스타와 니콘내콘 매출/매입/이익 슬랙에 전송하기',
-    cronTime: '0 0 10 * * *',
+    cronTime: '0 30 9 * * *',
     action: noticeDailyStats,
   },
   {
@@ -87,6 +82,11 @@ const jobs = [
     name: '네이버 스토어 방문자수 슬랙에 전송하기',
     cronTime: '0 30 12,18 * * *',
     action: noticeNaverVisitorCount,
+  },
+  {
+    name: '전략상품 모니터링 시트 작성하기',
+    cronTime: '0 57 23 * * *',
+    action: updateDailyMonitoring,
   },
 ]
 

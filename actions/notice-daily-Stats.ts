@@ -12,6 +12,7 @@ export async function noticeDailyStats() {
     const yesterday = (format) => {
       return moment().subtract(1, 'day').format(format)
     }
+
     let errMessage
 
     let gftStats: any = await readGoogleSheet(

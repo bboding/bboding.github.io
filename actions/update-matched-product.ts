@@ -91,7 +91,7 @@ export async function updateMatchedProduct() {
   const gftNames: any = await readGoogleSheet(
     spreadsheetId,
     '기프티 상품 분석',
-    'A2001',
+    'A2',
     'A',
   )
 
