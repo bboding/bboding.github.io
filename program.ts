@@ -8,6 +8,8 @@ import {getGftProduct} from './actions/get-gft-product'
 import {updateGftChart} from './actions/update-gft-chart'
 import {updateUnderFifty} from './actions/update-under-fifty'
 import {updateMatchedProduct} from './actions/update-matched-product'
+import {noticeDailyStats} from './actions/notice-daily-Stats'
+import {noticeNaverVisitorCount} from './actions/notice-naver-visitor-count'
 
 program.version('1.0')
 
@@ -88,6 +90,24 @@ program
   )
   .action(async () => {
     await updateMatchedProduct()
+    process.exit()
+  })
+
+program
+  .command('notice-daily-stats')
+  .description(
+    '기프티스타와 니콘내콘 매출, 이익, 매입액 등을 슬랙에 전송합니다.',
+  )
+  .action(async () => {
+    await noticeDailyStats()
+    process.exit()
+  })
+
+program
+  .command('notice-naver-visitor-count')
+  .description('각 네이버스토어 방문자를 확인하여 슬랙에 전송합니다.')
+  .action(async () => {
+    await noticeNaverVisitorCount()
     process.exit()
   })
 program.parse(process.argv)

@@ -146,15 +146,15 @@ async function getAllNcncProduct() {
     spreadsheetId,
     '니콘내콘 상품 분석',
     sheet,
-    'a2',
-    'n',
+    'A2',
+    'N',
   )
   await writeGoogleSheetForRow(
     spreadsheetId,
     '니콘내콘 상품 분석',
     [[moment().subtract(1, 'days').format('YYYY.MM.DD(ddd)')]],
-    'o1',
-    'o1',
+    'O1',
+    'O1',
   )
 }
 
@@ -162,8 +162,8 @@ async function recordAppSalesRatio() {
   const ncncInfo = await readGoogleSheet(
     spreadsheetId,
     '니콘내콘 상품 분석',
-    'p2',
-    'r8',
+    'P2',
+    'R8',
   )
 
   await appendGoogleSheet(
@@ -181,8 +181,8 @@ async function recordAppSalesRatio() {
         ncncInfo[6][0],
       ],
     ],
-    't',
-    'aa',
+    'T',
+    'AA',
   )
 }
 

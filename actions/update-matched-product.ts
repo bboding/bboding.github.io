@@ -46,6 +46,38 @@ async function getSimilarity(word1, word2) {
   )
 }
 
+// 기프티스타 상품명에 매칭하는 니콘내콘 상품명 업데이트 (첫 세팅)
+async function setMatching(gftNames, ncncNames) {
+  let idx = 0
+  const values = []
+
+  for (const gftName of gftNames) {
+    idx++
+    let max = 0
+    let ncnc
+
+    for (const ncncName of ncncNames) {
+      const wordSimilarity = await getSimilarity(gftName[0], ncncName[0])
+
+      if (max < wordSimilarity) {
+        max = wordSimilarity
+        ncnc = ncncName[0]
+      }
+    }
+    values.push([ncnc])
+
+    console.log(idx)
+  }
+
+  await writeGoogleSheetForRow(
+    spreadsheetId,
+    '기프티 상품 분석',
+    values,
+    'S2',
+    'S',
+  )
+}
+
 export async function updateMatchedProduct() {
   console.log('update-matched-product', moment().format('dddd HH:mm:ss'))
 
@@ -59,7 +91,7 @@ export async function updateMatchedProduct() {
   const gftNames: any = await readGoogleSheet(
     spreadsheetId,
     '기프티 상품 분석',
-    'A2',
+    'A2001',
     'A',
   )
 
@@ -70,8 +102,11 @@ export async function updateMatchedProduct() {
     'S',
   )
 
+  const values = []
+
   for (const [index, matchedNcncName] of matchedNcncNames.entries()) {
     if (!matchedNcncName[0]) {
+      // 매칭된 니콘내콘 상품명이 비어있는 경우만 업데이트
       let max = 0
       let matchedNcnc = '-'
 
@@ -86,6 +121,7 @@ export async function updateMatchedProduct() {
 
           matchedNcnc = ncncName[0]
         }
+        values.push([matchedNcnc])
       }
 
       await writeGoogleSheetForRow(
