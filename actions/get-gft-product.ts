@@ -14,7 +14,7 @@ const buySellSpreadsheetId = process.env.BUY_SELL_COUNT_SPREADSHEET_ID
 async function getAllGftProduct() {
   const values = []
 
-  const {data} = await axios.post(
+  const {data: brands} = await axios.post(
     'https://api.giftistar.com/parse/classes/Brand',
     {
       where: {
@@ -32,8 +32,8 @@ async function getAllGftProduct() {
     },
   )
 
-  for (const brand of data.results) {
-    const res = await axios.post(
+  for (const brand of brands.results) {
+    const {data: items} = await axios.post(
       'https://api.giftistar.com/parse/classes/Menu',
       {
         where: {
@@ -53,7 +53,7 @@ async function getAllGftProduct() {
       },
     )
 
-    for (const item of res.data.results) {
+    for (const item of items.results) {
       values.push([
         `${item.brand_name} ${item.name}`,
         item.objectId,

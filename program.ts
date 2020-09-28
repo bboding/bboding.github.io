@@ -10,6 +10,7 @@ import {updateUnderFifty} from './actions/update-under-fifty'
 import {updateMatchedProduct} from './actions/update-matched-product'
 import {noticeDailyStats} from './actions/notice-daily-Stats'
 import {noticeNaverVisitorCount} from './actions/notice-naver-visitor-count'
+import {updateCurrentGftBuyPrice} from './actions/update-current-gft-buy-price'
 
 program.version('1.0')
 
@@ -108,6 +109,16 @@ program
   .description('각 네이버스토어 방문자를 확인하여 슬랙에 전송합니다.')
   .action(async () => {
     await noticeNaverVisitorCount()
+    process.exit()
+  })
+
+program
+  .command('update-current-gft-buy-price')
+  .description(
+    '기프티스타 매입개수 50위 내에서 매입가격 변동이 있으면 슬랙에 전송하고 해당 상품의 가격을 바꿉니다.',
+  )
+  .action(async () => {
+    await updateCurrentGftBuyPrice()
     process.exit()
   })
 program.parse(process.argv)
