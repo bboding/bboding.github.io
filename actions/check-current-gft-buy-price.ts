@@ -63,8 +63,8 @@ async function getGftCurrentBuyPrice() {
   return values
 }
 
-export async function updateCurrentGftBuyPrice() {
-  console.log('update-current-gft-buy-price', moment().format('dddd HH:mm:ss'))
+export async function checkCurrentGftBuyPrice() {
+  console.log('check-current-gft-buy-price', moment().format('dddd HH:mm:ss'))
 
   const gftBuyCountTop50Items: any = await readGoogleSheet(
     spreadsheetId,

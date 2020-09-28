@@ -10,7 +10,7 @@ import {updateUnderFifty} from './actions/update-under-fifty'
 import {updateMatchedProduct} from './actions/update-matched-product'
 import {noticeDailyStats} from './actions/notice-daily-Stats'
 import {noticeNaverVisitorCount} from './actions/notice-naver-visitor-count'
-import {updateCurrentGftBuyPrice} from './actions/update-current-gft-buy-price'
+import {checkCurrentGftBuyPrice} from './actions/check-current-gft-buy-price'
 
 program.version('1.0')
 
@@ -26,7 +26,7 @@ program.command('gifa-buy-sell-count').action(async () => {
 
 program
   .command('get-gft-cumulative-sales')
-  .description('기프티스타 누적판매량, 누적매입량을 가져옵니다.')
+  .description('전락 상품 누적판매량, 누적매입량을 기록합니다.')
   .action(async () => {
     await getGftCumulativeSales()
     process.exit()
@@ -113,12 +113,12 @@ program
   })
 
 program
-  .command('update-current-gft-buy-price')
+  .command('check-current-gft-buy-price')
   .description(
     '기프티스타 매입개수 50위 내에서 매입가격 변동이 있으면 슬랙에 전송하고 해당 상품의 가격을 바꿉니다.',
   )
   .action(async () => {
-    await updateCurrentGftBuyPrice()
+    await checkCurrentGftBuyPrice()
     process.exit()
   })
 program.parse(process.argv)
