@@ -146,15 +146,15 @@ async function getAllNcncProduct() {
     spreadsheetId,
     '니콘내콘 상품 분석',
     sheet,
-    'a2',
-    'n',
+    'A2',
+    'N',
   )
   await writeGoogleSheetForRow(
     spreadsheetId,
     '니콘내콘 상품 분석',
     [[moment().subtract(1, 'days').format('YYYY.MM.DD(ddd)')]],
-    'o1',
-    'o1',
+    'O1',
+    'O1',
   )
 }
 
@@ -162,8 +162,8 @@ async function recordAppSalesRatio() {
   const ncncInfo = await readGoogleSheet(
     spreadsheetId,
     '니콘내콘 상품 분석',
-    'p2',
-    'r8',
+    'P2',
+    'R8',
   )
 
   await appendGoogleSheet(
@@ -181,19 +181,16 @@ async function recordAppSalesRatio() {
         ncncInfo[6][0],
       ],
     ],
-    't',
-    'aa',
+    'T',
+    'AA',
   )
 }
 
 export async function getNcncProduct() {
-  console.log('니콘내콘 모든 상품 조회하기:', moment().format('dddd hh:mm:ss'))
+  console.log('get-all-ncnc-product', moment().format('dddd HH:mm:ss'))
   await getAllNcncProduct()
   await sleep(10000)
 
-  console.log(
-    '니콘내콘 어제자 판매, 매입, 이익 등을 기록하기:',
-    moment().format('dddd hh:mm:ss'),
-  )
+  console.log('record-app-sales-ratio', moment().format('dddd HH:mm:ss'))
   await recordAppSalesRatio()
 }

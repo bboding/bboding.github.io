@@ -39,8 +39,8 @@ async function getGftNaverSellPrice(productName) {
     const products: any = await readGoogleSheet(
       spreadsheetId,
       '상품명 비교',
-      'a2',
-      'b',
+      'A2',
+      'B',
     )
 
     for (const product of products) {
@@ -404,7 +404,8 @@ async function monitoring(parameter) {
   )
 }
 
-export async function dailyMonitoring() {
+export async function updateDailyMonitoring() {
+  console.log('update-daily-monitoring', moment().format('dddd HH:mm:ss'))
   const parameters: any = await readGoogleSheet(
     spreadsheetId,
     '어제의 기프티',
@@ -416,5 +417,6 @@ export async function dailyMonitoring() {
     await monitoring(parameter)
   }
 
+  console.log('update-naver-ranking', moment().format('dddd HH:mm:ss'))
   await updateNaverRanking(parameters)
 }
