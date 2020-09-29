@@ -23,10 +23,20 @@ export async function getSheets() {
   return google.sheets({version: 'v4', auth: client})
 }
 
+export async function batchGetGoogleSheet(spreadsheetId, ranges) {
+  const sheets = await getSheets()
+
+  return await sheets.spreadsheets.values.batchGet({
+    spreadsheetId,
+    ranges,
+    valueRenderOption: 'UNFORMATTED_VALUE',
+  })
+}
+
 export async function writeGoogleSheetForRow(
   spreadsheetId,
   sheetName,
-  list,
+  values,
   start,
   end,
 ) {
@@ -37,7 +47,7 @@ export async function writeGoogleSheetForRow(
     range: `${sheetName}!${start}:${end}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: list,
+      values,
     },
   })
 }
@@ -45,7 +55,7 @@ export async function writeGoogleSheetForRow(
 export async function writeGoogleSheetForColumn(
   spreadsheetId,
   sheetName,
-  list,
+  values,
   start,
   end,
 ) {
@@ -53,11 +63,30 @@ export async function writeGoogleSheetForColumn(
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `'${sheetName}'!${start}:${end}`,
+    range: `${sheetName}!${start}:${end}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       majorDimension: 'COLUMNS',
-      values: list,
+      values,
+    },
+  })
+}
+
+export async function appendGoogleSheet(
+  spreadsheetId,
+  sheetName,
+  values,
+  start,
+  end,
+) {
+  const sheets: any = await getSheets()
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId,
+    range: `${sheetName}!${start}:${end}`,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values,
     },
   })
 }

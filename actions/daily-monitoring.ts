@@ -6,8 +6,9 @@ import {config} from 'dotenv'
 import {
   readGoogleSheet,
   sleep,
-  writeGoogleSheetForRow,
   googleSheetFormatter,
+  appendGoogleSheet,
+  writeGoogleSheetForRow,
 } from '../utils'
 
 config({path: `${__dirname}/../.env`})
@@ -149,50 +150,50 @@ async function updateNaverRanking(parameters) {
     ]
 
     const itemName = parameter[0]
-    const sheet: any = await readGoogleSheet(
-      dailySpreadsheetId,
-      itemName,
-      'B',
-      'B',
-    )
-    await writeGoogleSheetForRow(
+
+    await appendGoogleSheet(
       dailySpreadsheetId,
       itemName,
       [list],
-      itemName === 'CGV' ? `AE${sheet.length}` : `AC${sheet.length}`,
-      itemName === 'CGV' ? `AN${sheet.length}` : `AL${sheet.length}`,
+      itemName === 'CGV' ? 'AE' : 'AC',
+      itemName === 'CGV' ? 'AN' : 'AL',
     )
   }
 }
 
 async function getNcncCount(param, conItemIds) {
   try {
+    const conLogCodes = await db.ConLogCode.findAll({
+      attributes: ['id', 'key'],
+      where: {
+        key: {
+          [Op.or]: ['inSale', 'sold', 'soldOtherMarket'],
+        },
+      },
+    })
+
     let conLogCodeId = null
 
     if (param === 'sell') {
-      const conLogCodes = await db.ConLogCode.findAll({
-        attributes: ['id'],
-        where: {
-          key: {
-            [Op.or]: ['sold', 'soldOtherMarket'],
-          },
-        },
-      })
-      const sellConLogCodeIds = conLogCodes.map((conLogCode) => {
-        return conLogCode.id
-      })
       conLogCodeId = {
-        [Op.or]: sellConLogCodeIds,
+        [Op.or]: conLogCodes
+          .filter((conLogCode) => {
+            return (
+              conLogCode.key === 'sold' || conLogCode.key === 'soldOtherMarket'
+            )
+          })
+          .map((conLogCode) => {
+            return conLogCode.id
+          }),
       }
     } else if (param === 'buy') {
-      conLogCodeId = (
-        await db.ConLogCode.findOne({
-          attributes: ['id'],
-          where: {
-            key: 'inSale',
-          },
+      conLogCodeId = conLogCodes
+        .filter((conLogCode) => {
+          return conLogCode.key === 'inSale'
         })
-      ).id
+        .map((conLogCode) => {
+          return conLogCode.id
+        })[0]
     }
 
     let where: any = {
@@ -206,13 +207,11 @@ async function getNcncCount(param, conItemIds) {
     }
 
     return db.ConLog.count({
-      attributes: ['id'],
       where,
       distinct: true,
       include: [
         {
           model: db.Con,
-          attributes: ['id'],
           where: {
             conItemId: {
               [Op.or]: conItemIds,
