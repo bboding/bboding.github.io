@@ -8,7 +8,7 @@ import {getGftProduct} from './actions/get-gft-product'
 import {updateGftChart} from './actions/update-gft-chart'
 import {updateUnderFifty} from './actions/update-under-fifty'
 import {updateMatchedProduct} from './actions/update-matched-product'
-import {noticeDailyStats} from './actions/notice-daily-Stats'
+import {noticeDailyStats} from './actions/notice-daily-stats'
 import {noticeNaverVisitorCount} from './actions/notice-naver-visitor-count'
 import {checkCurrentGftBuyPrice} from './actions/check-current-gft-buy-price'
 
