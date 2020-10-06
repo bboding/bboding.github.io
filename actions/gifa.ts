@@ -1,11 +1,6 @@
 import axios from 'axios'
-import {config} from 'dotenv'
-import fs from 'fs'
-import {google} from 'googleapis'
 import moment from 'moment'
 import {getSheets} from '../utils'
-
-config({path: `${__dirname}/../.env`})
 
 const spreadsheetId = process.env.BUY_SELL_COUNT_SPREADSHEET_ID
 

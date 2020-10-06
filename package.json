@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "rm -rf ./dist && ./node_modules/typescript/bin/tsc",
-    "program": "node -r dotenv/config dist/program.js"
+    "program": "node dist/program.js",
+    "serve": "node dist/cron-job.js"
   },
   "author": "",
   "license": "ISC",

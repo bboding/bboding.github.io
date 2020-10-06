@@ -2,7 +2,6 @@ import axios from 'axios'
 import cheerio from 'cheerio'
 import moment from 'moment'
 import {db, Op} from '@doublenc-inc/ncnc-models'
-import {config} from 'dotenv'
 import {
   readGoogleSheet,
   sleep,
@@ -10,8 +9,6 @@ import {
   appendGoogleSheet,
   writeGoogleSheetForRow,
 } from '../utils'
-
-config({path: `${__dirname}/../.env`})
 
 const spreadsheetId = process.env.SPREADSHEET_ID
 const dailySpreadsheetId = process.env.DAILY_SPREADSHEET_ID

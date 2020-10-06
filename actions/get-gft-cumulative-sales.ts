@@ -1,9 +1,6 @@
 import moment from 'moment'
-import {config} from 'dotenv'
 import {readGoogleSheet, writeGoogleSheetForColumn} from '../utils'
 import {getGftItem} from './update-daily-monitoring'
-
-config({path: `${__dirname}/../.env`})
 
 const spreadsheetId = process.env.SPREADSHEET_ID
 
